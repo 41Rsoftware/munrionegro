@@ -203,6 +203,17 @@ footer ul a:hover{color:#fff;}
   .search-box{display:none;}
   .stat-row{grid-template-columns:repeat(2,1fr);}
 }
+
+#serDestacado{margin-bottom:28px;}
+#serDestacado .featured-pub{display:grid;grid-template-columns:1.25fr 1fr;border:1px solid var(--borde);background:#fff;overflow:hidden;}
+@media(max-width:900px){#serDestacado .featured-pub{grid-template-columns:1fr}}
+#serDestacado .featured-img img{width:100%;height:100%;object-fit:cover;display:block;min-height:220px;max-height:320px}
+#serDestacado .featured-side{padding:26px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+#serDestacado .badge-tag{display:inline-flex;align-self:flex-start;background:var(--rojo-tenue);color:var(--rojo);font-size:11px;font-weight:700;padding:4px 10px;border-radius:3px;text-transform:uppercase}
+#serDestacado h3{font-size:20px;color:var(--verde-oscuro)}
+#serDestacado p{font-size:14px;color:var(--texto-secundario);white-space:pre-wrap}
+#serDestacado .btn-feat{display:inline-block;margin-top:8px;background:var(--verde-oscuro);color:#fff;padding:10px 16px;border-radius:4px;font-size:13px;font-weight:600;text-decoration:none;width:fit-content}
+
 </style>
 </head>
 <body>
@@ -282,6 +293,7 @@ footer ul a:hover{color:#fff;}
     </div>
   </div>
 </section>
+<section class="section" style="padding-top:28px;padding-bottom:0"><div class="container" id="serDestacado"></div></section>
 <section class="section">
   <div class="container">
     <div class="featured-pub" style="margin-bottom:1px;">
@@ -357,5 +369,26 @@ footer ul a:hover{color:#fff;}
     </div>
   </div>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const sb = window.supabase.createClient('https://iioxuxnbkgrwswufvlzo.supabase.co','sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK');
+  function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+  sb.from('serenazgo_bloque').select('*').eq('status','published').order('updated_at',{ascending:false}).limit(1)
+    .then(({data,error})=>{
+      const box=document.getElementById('serDestacado');
+      if(!box||error||!data||!data.length) return;
+      const p=data[0];
+      const img=p.image_url?`<img src="${p.image_url}" alt="">`:'';
+      const cta=p.button_text?`<a class="btn-feat" href="${esc(p.link_url||'#')}" target="_blank" rel="noopener">${esc(p.button_text)}</a>`:'';
+      box.innerHTML=`<div class="featured-pub"><div class="featured-img">${img}</div><div class="featured-side">
+        <span class="badge-tag">${esc(p.badge||'Serenazgo')}</span>
+        <h3>${esc(p.title||'')}</h3>
+        <p>${esc(p.body||'')}</p>${cta}</div></div>`;
+    });
+})();
+</script>
+
 </body>
 </html>
