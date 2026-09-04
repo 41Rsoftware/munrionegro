@@ -680,172 +680,26 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
     </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
-  const ADMIN_PASS_HASH = '7f46db11702dfd10a845626bcece60a03f8728180b3e82e12cefef7beeb64f86';
-  const overlay = document.getElementById('adminAuthOverlay');
-  const openBtn = document.getElementById('adminOpenBtn');
-  const closeBtn = document.getElementById('adminCloseBtn');
-  const cancelBtn = document.getElementById('adminCancelBtn');
-  const submitBtn = document.getElementById('adminSubmitBtn');
-  const passInput = document.getElementById('adminPassInput');
-  const errBox = document.getElementById('adminAuthError');
-  if (!overlay || !openBtn) return;
+  const SUPABASE_URL = 'https://iioxuxnbkgrwswufvlzo.supabase.co';
+  const SUPABASE_ANON = 'sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  async function sha256(message) {
-    const data = new TextEncoder().encode(message);
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-  function openModal() {
-    errBox.classList.remove('show');
-    passInput.value = '';
-    overlay.classList.add('open');
-    setTimeout(function () { passInput.focus(); }, 40);
-  }
-  function closeModal() {
-    overlay.classList.remove('open');
-    passInput.value = '';
-    errBox.classList.remove('show');
-  }
-  openBtn.addEventListener('click', openModal);
-  closeBtn.addEventListener('click', closeModal);
-  cancelBtn.addEventListener('click', closeModal);
-  overlay.addEventListener('click', function (e) {
-    if (e.target.getAttribute('data-close') === '1') closeModal();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
-  });
-  passInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') submitBtn.click();
-  });
-  submitBtn.addEventListener('click', async function () {
-    var password = passInput.value;
-    errBox.classList.remove('show');
-    if (!password) {
-      errBox.textContent = 'Acceso denegado.';
-      errBox.classList.add('show');
-      return;
-    }
-    var hash = await sha256(password);
-    if (hash === ADMIN_PASS_HASH) {
-      sessionStorage.setItem('rn_admin_session', '1');
-      window.location.href = 'admin.html';
-    } else {
-      errBox.textContent = 'Acceso denegado.';
-      errBox.classList.add('show');
-      passInput.value = '';
-      passInput.focus();
-    }
-  });
-})();
-</script>
-
-
-<div id="adminAuthOverlay" role="dialog" aria-modal="true" aria-labelledby="adminAuthTitle">
-  <div class="admin-blur" data-close="1"></div>
-  <div class="admin-modal">
-    <button type="button" class="admin-close" id="adminCloseBtn" aria-label="Cerrar">×</button>
-    <div class="brand-row">
-      <div class="brand-icon">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-      </div>
-      <div>
-        <h2 id="adminAuthTitle">Modo administrador</h2>
-        <p class="sub">Municipalidad Distrital de Río Negro</p>
-      </div>
-    </div>
-    <label for="adminPassInput">Contraseña</label>
-    <input type="password" id="adminPassInput" autocomplete="current-password" placeholder="Ingrese su contraseña">
-    <div class="admin-error" id="adminAuthError">Acceso denegado.</div>
-    <div class="actions">
-      <button type="button" class="btn-ghost" id="adminCancelBtn">Cancelar</button>
-      <button type="button" class="btn-primary" id="adminSubmitBtn">Ingresar</button>
-    </div>
-  </div>
-</div>
-<script>
-(function () {
-  const ADMIN_PASS_HASH = '7f46db11702dfd10a845626bcece60a03f8728180b3e82e12cefef7beeb64f86';
-  const overlay = document.getElementById('adminAuthOverlay');
-  const openBtn = document.getElementById('adminOpenBtn');
-  const closeBtn = document.getElementById('adminCloseBtn');
-  const cancelBtn = document.getElementById('adminCancelBtn');
-  const submitBtn = document.getElementById('adminSubmitBtn');
-  const passInput = document.getElementById('adminPassInput');
-  const errBox = document.getElementById('adminAuthError');
-  if (!overlay || !openBtn) return;
-  async function sha256(message) {
-    const data = new TextEncoder().encode(message);
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-  function openModal() {
-    errBox.classList.remove('show');
-    passInput.value = '';
-    overlay.classList.add('open');
-    setTimeout(function () { passInput.focus(); }, 40);
-  }
-  function closeModal() {
-    overlay.classList.remove('open');
-    passInput.value = '';
-    errBox.classList.remove('show');
-  }
-  openBtn.addEventListener('click', openModal);
-  closeBtn.addEventListener('click', closeModal);
-  cancelBtn.addEventListener('click', closeModal);
-  overlay.addEventListener('click', function (e) {
-    if (e.target.getAttribute('data-close') === '1') closeModal();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
-  });
-  passInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') submitBtn.click();
-  });
-  submitBtn.addEventListener('click', async function () {
-    var password = passInput.value;
-    errBox.classList.remove('show');
-    if (!password) {
-      errBox.textContent = 'Acceso denegado.';
-      errBox.classList.add('show');
-      return;
-    }
-    var hash = await sha256(password);
-    if (hash === ADMIN_PASS_HASH) {
-      sessionStorage.setItem('rn_admin_session', '1');
-      window.location.href = 'admin.html';
-    } else {
-      errBox.textContent = 'Acceso denegado.';
-      errBox.classList.add('show');
-      passInput.value = '';
-      passInput.focus();
-    }
-  });
-})();
-</script>
-
-
-
-<script>
-(function () {
-  function loadPosts() {
-    try { return JSON.parse(localStorage.getItem('rn_publicaciones') || '[]'); } catch (e) { return []; }
-  }
-  function loadAnn() {
-    try { return JSON.parse(localStorage.getItem('rn_announcement') || '{}'); } catch (e) { return {}; }
-  }
   function esc(s) {
     var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
   }
   function fmtDate(iso) {
     if (!iso) return '';
-    try {
-      return new Date(iso).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' });
-    } catch (e) { return ''; }
+    try { return new Date(iso).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' }); }
+    catch (e) { return ''; }
   }
 
+  function loadAnn() {
+    try { return JSON.parse(localStorage.getItem('rn_announcement') || '{}'); } catch (e) { return {}; }
+  }
   var ann = loadAnn();
   var annBar = document.getElementById('rnAnnBar');
   if (annBar && ann.enabled && ann.text) {
@@ -855,66 +709,78 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
     annBar.classList.add('open');
   }
 
-  var posts = loadPosts().filter(function (p) { return p.status === 'published'; });
-  // sort by published_at or created_at desc, then order
-  posts.sort(function (a, b) {
-    if (a.order != null && b.order != null && a.order !== b.order) return a.order - b.order;
-    var da = new Date(a.published_at || a.created_at || 0).getTime();
-    var db = new Date(b.published_at || b.created_at || 0).getTime();
-    return db - da;
-  });
+  function renderPosts(posts) {
+    posts = (posts || []).slice().sort(function (a, b) {
+      var oa = a.sort_order != null ? a.sort_order : 0;
+      var ob = b.sort_order != null ? b.sort_order : 0;
+      if (oa !== ob) return oa - ob;
+      return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
+    });
+    var featured = posts.filter(function (p) { return p.featured; });
+    var normal = posts.filter(function (p) { return !p.featured; });
 
-  var featured = posts.filter(function (p) { return p.featured; });
-  var normal = posts.filter(function (p) { return !p.featured; });
-
-  var featBox = document.getElementById('rnDynamicFeatured');
-  if (featBox && featured.length) {
-    featBox.innerHTML = featured.map(function (p) {
-      var img = (p.images && p.images[0]) ? '<img src="' + p.images[0] + '" alt="">' : '';
-      var cta = p.button_text
-        ? '<a class="btn-feat" href="' + esc(p.link_url || '#') + '">' + esc(p.button_text) + '</a>'
-        : '';
-      return '<div class="featured-pub">' +
-        '<div class="featured-img">' + img + '</div>' +
-        '<div class="featured-side">' +
-          '<span class="badge-tag">' + esc(p.category || 'comunicado') + '</span>' +
-          '<h3>' + esc(p.title) + '</h3>' +
-          '<p>' + esc(p.body || '') + '</p>' + cta +
-        '</div></div>';
-    }).join('');
-  }
-
-  var listBox = document.getElementById('rnDynamicPosts');
-  if (listBox && normal.length) {
-    var cards = normal.map(function (p) {
-      var imgs = p.images || [];
-      var imgHtml = '';
-      if (imgs.length === 1) {
-        imgHtml = '<img class="fb-img" src="' + imgs[0] + '" alt="">';
-      } else if (imgs.length > 1) {
-        imgHtml = '<div class="fb-imgs two">' +
-          imgs.slice(0, 2).map(function (u) { return '<img src="' + u + '" alt="">'; }).join('') +
-          '</div>';
+    var featBox = document.getElementById('rnDynamicFeatured');
+    if (featBox) {
+      if (!featured.length) featBox.innerHTML = '';
+      else {
+        featBox.innerHTML = featured.map(function (p) {
+          var img = (p.images && p.images[0]) ? '<img src="' + p.images[0] + '" alt="">' : '';
+          var cta = p.button_text
+            ? '<a class="btn-feat" href="' + esc(p.link_url || '#') + '">' + esc(p.button_text) + '</a>'
+            : '';
+          return '<div class="featured-pub">' +
+            '<div class="featured-img">' + img + '</div>' +
+            '<div class="featured-side">' +
+              '<span class="badge-tag">' + esc(p.category || 'comunicado') + '</span>' +
+              '<h3>' + esc(p.title) + '</h3>' +
+              '<p>' + esc(p.body || '') + '</p>' + cta +
+            '</div></div>';
+        }).join('');
       }
-      var cta = p.button_text
-        ? '<a class="fb-cta" href="' + esc(p.link_url || '#') + '">' + esc(p.button_text) + '</a>'
-        : '';
-      var when = fmtDate(p.published_at || p.created_at);
-      return '<article class="fb-post">' +
-        '<div class="fb-head">' +
-          '<img class="fb-avatar" src="IMG/logoMUNI.png" alt="">' +
-          '<div class="fb-meta"><div class="name">Municipalidad Distrital de Río Negro - Oficial</div>' +
-          '<div class="time">' + esc(when) + (p.category ? ' · ' + esc(p.category) : '') + '</div></div>' +
-        '</div>' +
-        '<div class="fb-text"><strong>' + esc(p.title) + '</strong>' +
-          (p.body ? '
-' + esc(p.body) : '') + '</div>' +
-        imgHtml + cta +
-        '<div class="fb-actions"><span>Me gusta</span><span>Comentar</span><span>Compartir</span></div>' +
-      '</article>';
-    }).join('');
-    listBox.innerHTML = '<h2 class="fb-feed-title">Comunicados y noticias</h2>' + cards;
+    }
+
+    var listBox = document.getElementById('rnDynamicPosts');
+    if (listBox) {
+      if (!normal.length) { listBox.innerHTML = ''; return; }
+      var cards = normal.map(function (p) {
+        var imgs = p.images || [];
+        var imgHtml = '';
+        if (imgs.length === 1) imgHtml = '<img class="fb-img" src="' + imgs[0] + '" alt="">';
+        else if (imgs.length > 1) {
+          imgHtml = '<div class="fb-imgs two">' +
+            imgs.slice(0, 2).map(function (u) { return '<img src="' + u + '" alt="">'; }).join('') +
+            '</div>';
+        }
+        var cta = p.button_text
+          ? '<a class="fb-cta" href="' + esc(p.link_url || '#') + '">' + esc(p.button_text) + '</a>'
+          : '';
+        var when = fmtDate(p.published_at || p.created_at);
+        return '<article class="fb-post">' +
+          '<div class="fb-head">' +
+            '<img class="fb-avatar" src="IMG/logoMUNI.png" alt="">' +
+            '<div class="fb-meta"><div class="name">Municipalidad Distrital de Río Negro - Oficial</div>' +
+            '<div class="time">' + esc(when) + (p.category ? ' · ' + esc(p.category) : '') + '</div></div>' +
+          '</div>' +
+          '<div class="fb-text"><strong>' + esc(p.title) + '</strong>' +
+            (p.body ? '\n' + esc(p.body) : '') + '</div>' +
+          imgHtml + cta +
+          '<div class="fb-actions"><span>Me gusta</span><span>Comentar</span><span>Compartir</span></div>' +
+        '</article>';
+      }).join('');
+      listBox.innerHTML = '<h2 class="fb-feed-title">Comunicados y noticias</h2>' + cards;
+    }
   }
+
+  sb.from('publicaciones')
+    .select('*')
+    .eq('status', 'published')
+    .then(function (res) {
+      if (res.error) {
+        console.warn('Supabase publicaciones:', res.error.message);
+        return;
+      }
+      renderPosts(res.data || []);
+    });
 })();
 </script>
 
