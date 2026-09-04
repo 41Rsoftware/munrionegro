@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administrador | Municipalidad Distrital de Río Negro</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --verde-oscuro:#14311F; --verde-medio:#2A6B47; --verde-tenue:#EEF3EE;
+  --rojo:#B23A2E; --rojo-tenue:#F8E9E7; --borde:#DCE3DD; --texto:#1D2620;
+  --texto-secundario:#5A6459; --blanco:#FFFFFF;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter',sans-serif; background:#F4F6F4; color:var(--texto); font-size:14px;}
+a{color:inherit; text-decoration:none;}
+
+/* ---- Login gate ---- */
+#loginScreen{min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--verde-oscuro);}
+.login-box{background:#fff; padding:40px 36px; border-radius:8px; width:340px; box-shadow:0 20px 50px rgba(0,0,0,.3);}
+.login-box h1{font-size:17px; color:var(--verde-oscuro); margin-bottom:4px;}
+.login-box .sub{font-size:12.5px; color:var(--texto-secundario); margin-bottom:22px;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; color:var(--texto);}
+.field input{width:100%; border:1px solid var(--borde); border-radius:5px; padding:10px 12px; font-size:13.5px; font-family:inherit;}
+.field input:focus{outline:2px solid var(--verde-medio); outline-offset:1px;}
+.btn{background:var(--verde-oscuro); color:#fff; border:none; padding:11px 18px; border-radius:5px; font-weight:600; font-size:13.5px; cursor:pointer; width:100%;}
+.btn:hover{background:var(--verde-medio);}
+.btn-danger{background:var(--rojo);}
+.btn-danger:hover{background:#96291f;}
+.btn-outline{background:#fff; border:1px solid var(--borde); color:var(--texto);}
+.btn-outline:hover{background:var(--verde-tenue);}
+#loginError{color:var(--rojo); font-size:12.5px; margin-top:10px; display:none;}
+
+/* ---- Admin shell ---- */
+#adminShell{display:none; min-height:100vh;}
+.topbar{background:var(--verde-oscuro); color:#fff; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 22px;}
+.topbar .brand{font-weight:700; font-size:14px;}
+.topbar .who{font-size:12.5px; color:#cfe2d6; display:flex; align-items:center; gap:12px;}
+.layout{display:flex; min-height:calc(100vh - 56px);}
+.sidebar{width:210px; background:#fff; border-right:1px solid var(--borde); padding:18px 10px;}
+.sidebar a{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:6px; font-size:13.5px; font-weight:500; color:var(--texto-secundario); margin-bottom:2px;}
+.sidebar a.active, .sidebar a:hover{background:var(--verde-tenue); color:var(--verde-oscuro);}
+.main{flex:1; padding:26px 30px; overflow-y:auto;}
+.main h2{font-size:19px; color:var(--verde-oscuro); margin-bottom:4px;}
+.main .desc{font-size:13px; color:var(--texto-secundario); margin-bottom:20px;}
+
+.toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;}
+.toolbar input[type=text]{border:1px solid var(--borde); border-radius:5px; padding:9px 12px; font-size:13px; width:220px;}
+.filter-chip{border:1px solid var(--borde); background:#fff; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--texto-secundario); cursor:pointer;}
+.filter-chip.active{background:var(--verde-oscuro); color:#fff; border-color:var(--verde-oscuro);}
+
+table{width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--borde); border-radius:8px; overflow:hidden;}
+th,td{text-align:left; padding:11px 14px; font-size:13px; border-bottom:1px solid var(--borde);}
+th{background:var(--verde-tenue); color:var(--verde-oscuro); font-size:11.5px; text-transform:uppercase; letter-spacing:.02em;}
+tr:last-child td{border-bottom:none;}
+.badge{font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:4px; text-transform:uppercase;}
+.badge-published{background:#E3F3E8; color:#1F6B45;}
+.badge-draft{background:#F0F1EF; color:#84887f;}
+.badge-archived{background:var(--rojo-tenue); color:var(--rojo);}
+.row-actions{display:flex; gap:6px;}
+.icon-btn{border:1px solid var(--borde); background:#fff; width:30px; height:30px; border-radius:5px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+.icon-btn:hover{background:var(--verde-tenue);}
+.icon-btn svg{width:15px; height:15px; stroke:var(--texto);}
+
+/* modal / editor */
+.overlay{display:none; position:fixed; inset:0; background:rgba(10,26,17,.5); align-items:center; justify-content:center; z-index:200; padding:20px;}
+.editor{background:#fff; width:640px; max-width:100%; max-height:88vh; overflow-y:auto; border-radius:8px; padding:26px;}
+.editor h3{font-size:16px; margin-bottom:18px; color:var(--verde-oscuro);}
+.editor .field{margin-bottom:14px;}
+.editor textarea{width:100%; border:1px solid var(--borde); border-radius:5px; padding:10px 12px; font-size:13.5px; font-family:inherit; resize:vertical; min-height:80px;}
+.editor select{width:100%; border:1px solid var(--borde); border-radius:5px; padding:10px 12px; font-size:13.5px; font-family:inherit;}
+.editor .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.editor .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--borde);}
+.editor .actions .btn{width:auto;}
+.preview-box{border:1px dashed var(--borde); border-radius:6px; padding:14px; margin-top:6px; font-size:12.5px; color:var(--texto-secundario);}
+#imgPreviewList{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+#imgPreviewList img{width:60px; height:60px; object-fit:cover; border-radius:4px; border:1px solid var(--borde);}
+.toast{position:fixed; bottom:20px; right:20px; background:var(--verde-oscuro); color:#fff; padding:12px 18px; border-radius:6px; font-size:13px; z-index:300; display:none;}
+.toast.error{background:var(--rojo);}
+.empty-row td{text-align:center; color:var(--texto-secundario); padding:30px;}
+
+@media (max-width:760px){
+  .layout{flex-direction:column;}
+  .sidebar{width:100%; display:flex; overflow-x:auto; border-right:none; border-bottom:1px solid var(--borde);}
+  .sidebar a{white-space:nowrap;}
+  table{font-size:12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>Panel administrativo</h1>
+    <div class="sub">Municipalidad Distrital de Río Negro</div>
+    <div class="field">
+      <label>Correo</label>
+      <input type="email" id="loginEmail" placeholder="admin@munirionegro.gob.pe" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn" id="loginBtn">Ingresar</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- ================= ADMIN SHELL ================= -->
+<div id="adminShell">
+  <div class="topbar">
+    <div class="brand">Río Negro · Panel administrativo</div>
+    <div class="who">
+      <span id="whoEmail"></span>
+      <button class="btn btn-outline" style="width:auto; padding:7px 14px;" id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </div>
+  <div class="layout">
+    <aside class="sidebar">
+      <a href="#" class="active" data-view="publicaciones">Publicaciones</a>
+      <a href="#" data-view="log">Registro de actividad</a>
+      <a href="#" data-view="ayuda">Ayuda</a>
+    </aside>
+    <main class="main">
+
+      <!-- ---- Publicaciones view ---- -->
+      <div id="view-publicaciones">
+        <h2>Publicidad y contenido</h2>
+        <div class="desc">Crea, edita y publica el contenido que aparece en la sección "Publicaciones" del sitio.</div>
+        <div class="toolbar">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;" id="catFilters">
+            <button class="filter-chip active" data-cat="todos">Todos</button>
+            <button class="filter-chip" data-cat="comunicado">Comunicados</button>
+            <button class="filter-chip" data-cat="noticia">Noticias</button>
+            <button class="filter-chip" data-cat="obra">Obras</button>
+            <button class="filter-chip" data-cat="actividad">Actividades</button>
+            <button class="filter-chip" data-cat="cultura">Cultura</button>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="searchBox" placeholder="Buscar publicación...">
+            <button class="btn" style="width:auto;" id="newPostBtn">+ Nueva publicación</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Título</th><th>Categoría</th><th>Estado</th><th>Actualizado</th><th></th></tr>
+          </thead>
+          <tbody id="postsTable">
+            <tr class="empty-row"><td colspan="5">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ---- Log view ---- -->
+      <div id="view-log" style="display:none;">
+        <h2>Registro de actividad</h2>
+        <div class="desc">Historial de qué se creó, editó o eliminó, con fecha y usuario.</div>
+        <table>
+          <thead><tr><th>Fecha</th><th>Acción</th><th>Tabla</th><th>Detalle</th></tr></thead>
+          <tbody id="logTable"><tr class="empty-row"><td colspan="4">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- ---- Help view ---- -->
+      <div id="view-ayuda" style="display:none;">
+        <h2>Ayuda</h2>
+        <div class="desc">Este panel está conectado a Supabase. Las nuevas secciones (banners, galerías, documentos, eventos, estadísticas) se agregan una por una siguiendo este mismo patrón: una tabla en Supabase + una vista aquí + una lectura pública en el sitio.</div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ================= EDITOR MODAL ================= -->
+<div class="overlay" id="editorOverlay">
+  <div class="editor">
+    <h3 id="editorTitle">Nueva publicación</h3>
+    <input type="hidden" id="editId">
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="fTitle">
+    </div>
+    <div class="field">
+      <label>Subtítulo</label>
+      <input type="text" id="fSubtitle">
+    </div>
+    <div class="field">
+      <label>Texto</label>
+      <textarea id="fBody"></textarea>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Categoría</label>
+        <select id="fCategory">
+          <option value="comunicado">Comunicado</option>
+          <option value="noticia">Noticia</option>
+          <option value="obra">Obra</option>
+          <option value="actividad">Actividad</option>
+          <option value="cultura">Cultura y turismo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <select id="fStatus">
+          <option value="draft">Borrador</option>
+          <option value="published">Publicado</option>
+          <option value="archived">Archivado (papelera)</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Texto del botón (opcional)</label>
+        <input type="text" id="fButtonText" placeholder="Ver más">
+      </div>
+      <div class="field">
+        <label>Enlace del botón (opcional)</label>
+        <input type="text" id="fLinkUrl" placeholder="https://...">
+      </div>
+    </div>
+    <div class="field">
+      <label>Etiquetas (separadas por coma)</label>
+      <input type="text" id="fTags" placeholder="agua, medio ambiente">
+    </div>
+    <div class="field">
+      <label>Imágenes</label>
+      <input type="file" id="fImages" accept="image/*" multiple>
+      <div id="imgPreviewList"></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline" style="width:auto;" id="cancelEditBtn">Cancelar</button>
+      <button class="btn" style="width:auto;" id="saveDraftBtn">Guardar borrador</button>
+      <button class="btn" style="width:auto; background:var(--verde-medio);" id="publishBtn">Publicar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   CONFIGURA ESTO PRIMERO: pega la URL y la anon key de tu proyecto
+   Supabase → Project Settings → API
+   ===================================================================== */
+const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
+const SUPABASE_ANON_KEY = 'TU_ANON_KEY_AQUI';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+let uploadedUrls = [];
+
+/* ---------- LOGIN ---------- */
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errBox = document.getElementById('loginError');
+  errBox.style.display = 'none';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    errBox.textContent = 'Correo o contraseña incorrectos.';
+    errBox.style.display = 'block';
+    return;
+  }
+  currentUser = data.user;
+  enterAdmin();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  location.reload();
+});
+
+async function checkSession(){
+  const { data } = await sb.auth.getSession();
+  if (data.session) {
+    currentUser = data.session.user;
+    enterAdmin();
+  }
+}
+checkSession();
+
+function enterAdmin(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminShell').style.display = 'block';
+  document.getElementById('whoEmail').textContent = currentUser.email;
+  loadPosts();
+}
+
+/* ---------- NAV ---------- */
+document.querySelectorAll('.sidebar a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.sidebar a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    const view = a.dataset.view;
+    ['publicaciones','log','ayuda'].forEach(v => {
+      document.getElementById('view-' + v).style.display = (v === view) ? 'block' : 'none';
+    });
+    if (view === 'log') loadLog();
+  });
+});
+
+/* ---------- LOAD POSTS ---------- */
+let allPosts = [];
+let activeCat = 'todos';
+
+async function loadPosts(){
+  const { data, error } = await sb.from('publicaciones').select('*').order('updated_at', { ascending: false });
+  if (error) { showToast('Error cargando publicaciones: ' + error.message, true); return; }
+  allPosts = data || [];
+  renderPosts();
+}
+
+function renderPosts(){
+  const tbody = document.getElementById('postsTable');
+  const search = document.getElementById('searchBox').value.toLowerCase();
+  const filtered = allPosts.filter(p =>
+    (activeCat === 'todos' || p.category === activeCat) &&
+    (!search || p.title.toLowerCase().includes(search))
+  );
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No hay publicaciones todavía. Crea la primera con "+ Nueva publicación".</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(p => `
+    <tr>
+      <td>${escapeHtml(p.title)}</td>
+      <td>${escapeHtml(p.category)}</td>
+      <td><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
+      <td>${new Date(p.updated_at).toLocaleDateString('es-PE')}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" title="Editar" onclick="openEditor('${p.id}')">✎</button>
+          <button class="icon-btn" title="Duplicar" onclick="duplicatePost('${p.id}')">⧉</button>
+          <button class="icon-btn" title="Eliminar" onclick="deletePost('${p.id}')">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+function statusLabel(s){ return {draft:'Borrador', published:'Publicado', archived:'Archivado'}[s] || s; }
+function escapeHtml(s){ const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+document.getElementById('catFilters').addEventListener('click', e => {
+  if (!e.target.classList.contains('filter-chip')) return;
+  document.querySelectorAll('#catFilters .filter-chip').forEach(c => c.classList.remove('active'));
+  e.target.classList.add('active');
+  activeCat = e.target.dataset.cat;
+  renderPosts();
+});
+document.getElementById('searchBox').addEventListener('input', renderPosts);
+
+/* ---------- EDITOR MODAL ---------- */
+document.getElementById('newPostBtn').addEventListener('click', () => openEditor(null));
+document.getElementById('cancelEditBtn').addEventListener('click', closeEditor);
+
+function openEditor(id){
+  uploadedUrls = [];
+  document.getElementById('editId').value = id || '';
+  document.getElementById('imgPreviewList').innerHTML = '';
+  if (id) {
+    const p = allPosts.find(x => x.id === id);
+    document.getElementById('editorTitle').textContent = 'Editar publicación';
+    document.getElementById('fTitle').value = p.title || '';
+    document.getElementById('fSubtitle').value = p.subtitle || '';
+    document.getElementById('fBody').value = p.body || '';
+    document.getElementById('fCategory').value = p.category || 'noticia';
+    document.getElementById('fStatus').value = p.status || 'draft';
+    document.getElementById('fButtonText').value = p.button_text || '';
+    document.getElementById('fLinkUrl').value = p.link_url || '';
+    document.getElementById('fTags').value = (p.tags || []).join(', ');
+    uploadedUrls = p.images || [];
+    renderImgPreviews();
+  } else {
+    document.getElementById('editorTitle').textContent = 'Nueva publicación';
+    ['fTitle','fSubtitle','fBody','fButtonText','fLinkUrl','fTags'].forEach(id2 => document.getElementById(id2).value = '');
+    document.getElementById('fCategory').value = 'noticia';
+    document.getElementById('fStatus').value = 'draft';
+  }
+  document.getElementById('editorOverlay').style.display = 'flex';
+}
+function closeEditor(){ document.getElementById('editorOverlay').style.display = 'none'; }
+
+function renderImgPreviews(){
+  document.getElementById('imgPreviewList').innerHTML = uploadedUrls.map(u => `<img src="${u}">`).join('');
+}
+
+document.getElementById('fImages').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  for (const file of files) {
+    const path = `${Date.now()}_${file.name}`;
+    const { error } = await sb.storage.from('publicaciones').upload(path, file);
+    if (error) { showToast('Error subiendo imagen: ' + error.message, true); continue; }
+    const { data: pub } = sb.storage.from('publicaciones').getPublicUrl(path);
+    uploadedUrls.push(pub.publicUrl);
+  }
+  renderImgPreviews();
+});
+
+async function savePost(statusOverride){
+  const id = document.getElementById('editId').value;
+  const payload = {
+    title: document.getElementById('fTitle').value.trim(),
+    subtitle: document.getElementById('fSubtitle').value.trim(),
+    body: document.getElementById('fBody').value.trim(),
+    category: document.getElementById('fCategory').value,
+    status: statusOverride || document.getElementById('fStatus').value,
+    button_text: document.getElementById('fButtonText').value.trim(),
+    link_url: document.getElementById('fLinkUrl').value.trim(),
+    tags: document.getElementById('fTags').value.split(',').map(t => t.trim()).filter(Boolean),
+    images: uploadedUrls,
+    updated_at: new Date().toISOString(),
+  };
+  if (!payload.title) { showToast('El título es obligatorio', true); return; }
+
+  let result;
+  if (id) {
+    result = await sb.from('publicaciones').update(payload).eq('id', id);
+    await logActivity('updated', id, payload.title);
+  } else {
+    result = await sb.from('publicaciones').insert(payload);
+    await logActivity('created', null, payload.title);
+  }
+  if (result.error) { showToast('Error guardando: ' + result.error.message, true); return; }
+  showToast('Guardado correctamente');
+  closeEditor();
+  loadPosts();
+}
+document.getElementById('saveDraftBtn').addEventListener('click', () => savePost('draft'));
+document.getElementById('publishBtn').addEventListener('click', () => savePost('published'));
+
+async function duplicatePost(id){
+  const p = allPosts.find(x => x.id === id);
+  const copy = { ...p, title: p.title + ' (copia)', status: 'draft' };
+  delete copy.id; delete copy.created_at; delete copy.updated_at;
+  const { error } = await sb.from('publicaciones').insert(copy);
+  if (error) { showToast('Error: ' + error.message, true); return; }
+  showToast('Publicación duplicada');
+  loadPosts();
+}
+
+async function deletePost(id){
+  const p = allPosts.find(x => x.id === id);
+  if (!confirm(`¿Eliminar "${p.title}"? Esta acción no se puede deshacer.`)) return;
+  const { error } = await sb.from('publicaciones').delete().eq('id', id);
+  if (error) { showToast('Error: ' + error.message, true); return; }
+  await logActivity('deleted', id, p.title);
+  showToast('Publicación eliminada');
+  loadPosts();
+}
+
+/* ---------- ACTIVITY LOG ---------- */
+async function logActivity(action, recordId, title){
+  await sb.from('activity_log').insert({
+    admin_email: currentUser ? currentUser.email : null,
+    action, table_name: 'publicaciones', record_id: recordId,
+    detail: { title }
+  });
+}
+async function loadLog(){
+  const tbody = document.getElementById('logTable');
+  const { data, error } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(50);
+  if (error) { tbody.innerHTML = `<tr class="empty-row"><td colspan="4">${error.message}</td></tr>`; return; }
+  if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Sin actividad todavía.</td></tr>'; return; }
+  tbody.innerHTML = data.map(l => `
+    <tr>
+      <td>${new Date(l.created_at).toLocaleString('es-PE')}</td>
+      <td>${l.action}</td>
+      <td>${l.table_name}</td>
+      <td>${escapeHtml(l.detail && l.detail.title ? l.detail.title : '')}</td>
+    </tr>
+  `).join('');
+}
+
+/* ---------- TOAST ---------- */
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3500);
+}
+</script>
+</body>
+</html>
