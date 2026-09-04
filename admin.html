@@ -6,6 +6,7 @@
 <title>Administrador | Municipalidad Distrital de Río Negro</title>
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--verde-oscuro:#14311F;--verde-medio:#2A6B47;--verde-tenue:#EEF3EE;--rojo:#B23A2E;--borde:#DCE3DD;--texto:#1D2620;--texto-secundario:#5A6459;}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -14,15 +15,16 @@ body{font-family:Inter,sans-serif;background:#F4F6F4;color:var(--texto);font-siz
 button,input,textarea,select{font-family:inherit}
 #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(20,49,31,.92),rgba(20,49,31,.85));position:relative}
 #loginScreen::before{content:'';position:absolute;inset:0;backdrop-filter:blur(14px);background:rgba(10,26,17,.35)}
-.login-box{position:relative;z-index:1;background:rgba(255,255,255,.97);padding:32px 28px;border-radius:12px;width:320px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.login-box{position:relative;z-index:1;background:rgba(255,255,255,.97);padding:32px 28px;border-radius:12px;width:340px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.35)}
 .login-box h1{font-size:17px;color:var(--verde-oscuro);margin-bottom:6px}
-.login-box .sub{font-size:12px;color:var(--texto-secundario);margin-bottom:20px;line-height:1.45}
+.login-box .sub{font-size:12px;color:var(--texto-secundario);margin-bottom:18px;line-height:1.45}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:600;margin-bottom:5px}
 .field input,.field textarea,.field select{width:100%;border:1px solid var(--borde);border-radius:8px;padding:9px 11px;font-size:13px}
 .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--verde-medio);outline-offset:1px}
 .btn{background:var(--verde-oscuro);color:#fff;border:none;padding:9px 14px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer}
 .btn:hover{background:var(--verde-medio)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
 .btn-outline{background:#fff;border:1px solid var(--borde);color:var(--texto);text-decoration:none;display:inline-flex;align-items:center}
 .btn-outline:hover{background:var(--verde-tenue)}
 .btn-sm{padding:5px 9px;font-size:12px;border-radius:6px}
@@ -76,13 +78,15 @@ button,input,textarea,select{font-family:inherit}
 .row-actions{display:flex;gap:4px;flex-wrap:wrap}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--verde-oscuro);color:#fff;padding:10px 14px;border-radius:8px;font-size:12.5px;z-index:300;display:none}
 .toast.error{background:var(--rojo)}
+.badge-cloud{display:inline-block;background:#E8F5EE;color:var(--verde-medio);font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px}
 </style>
 </head>
 <body>
 <div id="loginScreen">
   <div class="login-box">
     <h1>Acceso administrador</h1>
-    <div class="sub">Municipalidad Distrital de Río Negro<br>Ingrese la clave para continuar.</div>
+    <div class="sub">Municipalidad Distrital de Río Negro<br>Usa el correo y contraseña de tu usuario en Supabase (Authentication).</div>
+    <div class="field"><label>Correo</label><input type="email" id="loginEmail" placeholder="admin@..." autocomplete="username"></div>
     <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
     <button class="btn" id="loginBtn" style="width:100%">Ingresar</button>
     <div id="loginError"></div>
@@ -90,10 +94,10 @@ button,input,textarea,select{font-family:inherit}
 </div>
 <div id="adminShell">
   <div class="topbar">
-    <div class="brand">Río Negro · Panel administrativo</div>
+    <div class="brand">Río Negro · Panel <span class="badge-cloud" style="margin-left:8px;vertical-align:middle">Supabase</span></div>
     <div class="who">
-      <span>Administrador</span>
-      <a class="btn btn-outline btn-sm" href="index.html" id="backSiteBtn" style="color:#14311F">Volver al sitio</a>
+      <span id="whoEmail">Administrador</span>
+      <a class="btn btn-outline btn-sm" href="index.html" style="color:#14311F">Volver al sitio</a>
       <button class="btn btn-outline btn-sm" style="color:#14311F" id="logoutBtn">Cerrar sesión</button>
     </div>
   </div>
@@ -101,17 +105,16 @@ button,input,textarea,select{font-family:inherit}
     <aside class="sidebar">
       <a href="#" class="active" data-view="publicaciones"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Añadir publicación</a>
       <a href="#" data-view="aviso"><svg viewBox="0 0 24 24"><path d="M4 6h16v3H4zM4 12h16v6H4z"/></svg>Barra de avisos</a>
-      <a href="#" data-view="supabase"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Conectar Supabase</a>
     </aside>
     <main class="main">
       <div id="view-publicaciones">
         <h2 id="formHeading">Crear publicación</h2>
-        <div class="desc">Estilo Facebook en el inicio. Usa ↑ ↓ para ordenar, Editar para cambiar texto/fotos/fecha.</div>
+        <div class="desc">Se guarda en Supabase (nube). Se ve en cualquier PC. Usa Editar / ↑ ↓ / Eliminar en la tabla.</div>
         <div class="composer">
           <div>
             <div class="card">
               <h3>Contenido multimedia</h3>
-              <div class="hint">Puedes agregar varias fotos (se verán en el feed).</div>
+              <div class="hint">Fotos se suben a Supabase Storage (máx ~2.5 MB c/u).</div>
               <label class="chip-btn" style="cursor:pointer;display:inline-block">Agregar foto<input type="file" id="fImages" accept="image/*" multiple hidden></label>
               <button type="button" class="chip-btn" id="clearImgsBtn">Quitar fotos</button>
               <div id="imgPreviewList"></div>
@@ -120,7 +123,7 @@ button,input,textarea,select{font-family:inherit}
               <h3>Detalles</h3>
               <input type="hidden" id="editId">
               <div class="field"><label>Título</label><input type="text" id="fTitle" placeholder="Título"></div>
-              <div class="field"><label>Texto</label><textarea id="fBody" rows="5" placeholder="Escribe el contenido (como en Facebook)..."></textarea></div>
+              <div class="field"><label>Texto</label><textarea id="fBody" rows="5" placeholder="Contenido..."></textarea></div>
               <div class="field"><label>Categoría</label>
                 <select id="fCategory">
                   <option value="comunicado">Comunicado</option>
@@ -146,7 +149,7 @@ button,input,textarea,select{font-family:inherit}
             </div>
             <div class="actions-bar">
               <button class="btn btn-outline" id="resetBtn">Nueva / Limpiar</button>
-              <button class="btn" id="saveBtn">Guardar publicación</button>
+              <button class="btn" id="saveBtn">Guardar en la nube</button>
             </div>
           </div>
           <div class="preview-wrap">
@@ -163,40 +166,24 @@ button,input,textarea,select{font-family:inherit}
           </div>
         </div>
         <div class="list-simple">
-          <h3 style="font-size:13px;margin-bottom:8px;color:var(--verde-oscuro)">Publicaciones guardadas</h3>
+          <h3 style="font-size:13px;margin-bottom:8px;color:var(--verde-oscuro)">Publicaciones en Supabase</h3>
           <table>
             <thead><tr><th>Orden</th><th>Título</th><th>Fecha</th><th>Estado</th><th>Grande</th><th>Acciones</th></tr></thead>
-            <tbody id="postsTable"><tr><td colspan="6" style="text-align:center;color:#5A6459;padding:16px">Ninguna aún</td></tr></tbody>
+            <tbody id="postsTable"><tr><td colspan="6" style="text-align:center;color:#5A6459;padding:16px">Cargando…</td></tr></tbody>
           </table>
         </div>
       </div>
       <div id="view-aviso" style="display:none">
         <h2>Barra de avisos</h2>
-        <div class="desc">Franja superior del sitio.</div>
+        <div class="desc">Por ahora se guarda en este navegador. Las publicaciones ya van a Supabase.</div>
         <div class="card" style="max-width:520px">
           <div class="toggle-row">
-            <div><div class="lbl">Mostrar barra</div><div class="sublbl">On/off en el inicio.</div></div>
+            <div><div class="lbl">Mostrar barra</div></div>
             <label class="switch"><input type="checkbox" id="annEnabled"><span class="slider"></span></label>
           </div>
-          <div class="field"><label>Texto</label><input type="text" id="annText" placeholder="Aviso..."></div>
-          <div class="field"><label>Enlace (opcional)</label><input type="text" id="annLink" placeholder="https://..."></div>
+          <div class="field"><label>Texto</label><input type="text" id="annText"></div>
+          <div class="field"><label>Enlace</label><input type="text" id="annLink"></div>
           <button class="btn" id="saveAnnBtn">Guardar barra</button>
-        </div>
-      </div>
-      <div id="view-supabase" style="display:none">
-        <h2>Conectar Supabase</h2>
-        <div class="desc">Cuando pegues tu Project URL y anon key, el panel podrá usar la nube en lugar de solo este navegador.</div>
-        <div class="card" style="max-width:560px">
-          <div class="field"><label>Project URL</label><input type="text" id="sbUrl" placeholder="https://xxxx.supabase.co"></div>
-          <div class="field"><label>anon / publishable key</label><input type="text" id="sbKey" placeholder="eyJ... o sb_publishable_..."></div>
-          <p style="font-size:12px;color:var(--texto-secundario);margin-bottom:12px;line-height:1.45">
-            1) Supabase → Project Settings → API<br>
-            2) Ejecuta el SQL de <code>supabase_schema.sql</code><br>
-            3) Crea el bucket <code>publicaciones</code> (público)<br>
-            4) Crea un usuario en Authentication<br>
-            5) Guarda aquí URL y key (por ahora se guardan en este navegador)
-          </p>
-          <button class="btn" id="saveSbBtn">Guardar conexión local</button>
         </div>
       </div>
     </main>
@@ -204,120 +191,252 @@ button,input,textarea,select{font-family:inherit}
 </div>
 <div class="toast" id="toast"></div>
 <script>
-const ADMIN_PASS_HASH='7f46db11702dfd10a845626bcece60a03f8728180b3e82e12cefef7beeb64f86';
-const STORAGE_POSTS='rn_publicaciones';
-const STORAGE_ANN='rn_announcement';
-const STORAGE_SB='rn_supabase_cfg';
-let uploadedUrls=[];
-async function sha256(m){const d=new TextEncoder().encode(m);const b=await crypto.subtle.digest('SHA-256',d);return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
-function uid(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)}
-function loadPosts(){try{return JSON.parse(localStorage.getItem(STORAGE_POSTS)||'[]')}catch{return[]}}
-function savePosts(p){localStorage.setItem(STORAGE_POSTS,JSON.stringify(p))}
-function loadAnn(){try{return JSON.parse(localStorage.getItem(STORAGE_ANN)||'{}')}catch{return{}}}
-function saveAnn(a){localStorage.setItem(STORAGE_ANN,JSON.stringify(a))}
-function showToast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' error':'');t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
-function escapeHtml(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
-function toLocalInput(iso){if(!iso)return'';const d=new Date(iso);if(isNaN(d))return'';const off=d.getTimezoneOffset();const local=new Date(d.getTime()-off*60000);return local.toISOString().slice(0,16)}
-function fromLocalInput(v){if(!v)return new Date().toISOString();return new Date(v).toISOString()}
+const SUPABASE_URL = 'https://iioxuxnbkgrwswufvlzo.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-document.getElementById('loginBtn').addEventListener('click',async()=>{
-  const err=document.getElementById('loginError');err.style.display='none';
-  if((await sha256(document.getElementById('loginPassword').value))===ADMIN_PASS_HASH){sessionStorage.setItem('rn_admin_session','1');enterAdmin()}
-  else{err.textContent='Acceso denegado.';err.style.display='block'}
-});
-document.getElementById('logoutBtn').addEventListener('click',()=>{sessionStorage.removeItem('rn_admin_session');location.reload()});
-function enterAdmin(){document.getElementById('loginScreen').style.display='none';document.getElementById('adminShell').style.display='block';renderList();loadAnnUI();loadSbUI();setDefaultDate()}
-if(sessionStorage.getItem('rn_admin_session')==='1')enterAdmin();
-function setDefaultDate(){if(!document.getElementById('editId').value)document.getElementById('fDate').value=toLocalInput(new Date().toISOString())}
+let uploadedUrls = [];
+let postsCache = [];
 
-document.querySelectorAll('.sidebar a').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();document.querySelectorAll('.sidebar a').forEach(x=>x.classList.remove('active'));a.classList.add('active');const v=a.dataset.view;['publicaciones','aviso','supabase'].forEach(k=>{document.getElementById('view-'+k).style.display=v===k?'block':'none'})})});
-
-document.getElementById('fImages').addEventListener('change',async e=>{
-  for(const file of Array.from(e.target.files)){if(!file.type.startsWith('image/'))continue;if(file.size>2.5*1024*1024){showToast('Máx 2.5 MB',true);continue}
-    const url=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});uploadedUrls.push(url)}
-  renderImgPreviews();updatePreview();e.target.value=''
-});
-document.getElementById('clearImgsBtn').addEventListener('click',()=>{uploadedUrls=[];renderImgPreviews();updatePreview()});
-function renderImgPreviews(){document.getElementById('imgPreviewList').innerHTML=uploadedUrls.map(u=>'<img src="'+u+'">').join('')}
-['fTitle','fBody','fCategory','fButtonText','fLinkUrl','fFeatured'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',updatePreview);el.addEventListener('change',updatePreview)});
-function updatePreview(){
-  document.getElementById('previewTitle').textContent=document.getElementById('fTitle').value.trim()||'Título';
-  document.getElementById('previewBody').textContent=document.getElementById('fBody').value.trim()||'El texto aparecerá aquí.';
-  document.getElementById('previewBadge').textContent=document.getElementById('fCategory').value;
-  document.getElementById('previewCard').classList.toggle('featured',document.getElementById('fFeatured').checked);
-  const img=document.getElementById('previewImg');
-  if(uploadedUrls[0])img.innerHTML='<img src="'+uploadedUrls[0]+'" alt="">';else img.textContent='Sin imagen';
-  const btn=document.getElementById('fButtonText').value.trim();const cta=document.getElementById('previewCta');
-  if(btn){cta.style.display='inline-block';cta.textContent=btn;cta.href=document.getElementById('fLinkUrl').value.trim()||'#'}else cta.style.display='none';
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast' + (err ? ' error' : ''); t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3500);
 }
-function resetForm(){
-  document.getElementById('editId').value='';document.getElementById('formHeading').textContent='Crear publicación';
-  ['fTitle','fBody','fButtonText','fLinkUrl'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('fCategory').value='comunicado';document.getElementById('fFeatured').checked=false;document.getElementById('fPublish').checked=true;
-  uploadedUrls=[];renderImgPreviews();setDefaultDate();updatePreview();
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function toLocalInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso); if (isNaN(d)) return '';
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
 }
-document.getElementById('resetBtn').addEventListener('click',resetForm);
-document.getElementById('saveBtn').addEventListener('click',()=>{
-  const title=document.getElementById('fTitle').value.trim();if(!title){showToast('El título es obligatorio',true);return}
-  const id=document.getElementById('editId').value;let posts=loadPosts();
-  const payload={
-    title,body:document.getElementById('fBody').value.trim(),category:document.getElementById('fCategory').value,
-    button_text:document.getElementById('fButtonText').value.trim(),link_url:document.getElementById('fLinkUrl').value.trim(),
-    images:uploadedUrls.slice(),featured:document.getElementById('fFeatured').checked,
-    status:document.getElementById('fPublish').checked?'published':'draft',
-    published_at:fromLocalInput(document.getElementById('fDate').value),
-    updated_at:new Date().toISOString()
+function fromLocalInput(v) {
+  if (!v) return new Date().toISOString();
+  return new Date(v).toISOString();
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginError');
+  err.style.display = 'none';
+  document.getElementById('loginBtn').disabled = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  document.getElementById('loginBtn').disabled = false;
+  if (error) {
+    err.textContent = error.message || 'Acceso denegado.';
+    err.style.display = 'block';
+    return;
+  }
+  enterAdmin(data.user);
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  location.reload();
+});
+
+async function enterAdmin(user) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminShell').style.display = 'block';
+  document.getElementById('whoEmail').textContent = (user && user.email) || 'Administrador';
+  setDefaultDate();
+  loadAnnUI();
+  await loadPosts();
+}
+
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) enterAdmin(data.session.user);
+});
+
+function setDefaultDate() {
+  if (!document.getElementById('editId').value)
+    document.getElementById('fDate').value = toLocalInput(new Date().toISOString());
+}
+
+document.querySelectorAll('.sidebar a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.sidebar a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    const v = a.dataset.view;
+    document.getElementById('view-publicaciones').style.display = v === 'publicaciones' ? 'block' : 'none';
+    document.getElementById('view-aviso').style.display = v === 'aviso' ? 'block' : 'none';
+  });
+});
+
+document.getElementById('fImages').addEventListener('change', async e => {
+  for (const file of Array.from(e.target.files)) {
+    if (!file.type.startsWith('image/')) continue;
+    if (file.size > 2.5 * 1024 * 1024) { showToast('Máx 2.5 MB por imagen', true); continue; }
+    showToast('Subiendo imagen…');
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await sb.storage.from('publicaciones').upload(path, file, { upsert: false, contentType: file.type });
+    if (error) { showToast('Error al subir: ' + error.message, true); continue; }
+    const { data } = sb.storage.from('publicaciones').getPublicUrl(path);
+    uploadedUrls.push(data.publicUrl);
+  }
+  renderImgPreviews(); updatePreview(); e.target.value = '';
+});
+document.getElementById('clearImgsBtn').addEventListener('click', () => { uploadedUrls = []; renderImgPreviews(); updatePreview(); });
+function renderImgPreviews() {
+  document.getElementById('imgPreviewList').innerHTML = uploadedUrls.map(u => `<img src="${u}">`).join('');
+}
+['fTitle','fBody','fCategory','fButtonText','fLinkUrl','fFeatured'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', updatePreview);
+  el.addEventListener('change', updatePreview);
+});
+function updatePreview() {
+  document.getElementById('previewTitle').textContent = document.getElementById('fTitle').value.trim() || 'Título';
+  document.getElementById('previewBody').textContent = document.getElementById('fBody').value.trim() || 'El texto aparecerá aquí.';
+  document.getElementById('previewBadge').textContent = document.getElementById('fCategory').value;
+  document.getElementById('previewCard').classList.toggle('featured', document.getElementById('fFeatured').checked);
+  const img = document.getElementById('previewImg');
+  if (uploadedUrls[0]) img.innerHTML = `<img src="${uploadedUrls[0]}" alt="">`;
+  else img.textContent = 'Sin imagen';
+  const btn = document.getElementById('fButtonText').value.trim();
+  const cta = document.getElementById('previewCta');
+  if (btn) { cta.style.display = 'inline-block'; cta.textContent = btn; cta.href = document.getElementById('fLinkUrl').value.trim() || '#'; }
+  else cta.style.display = 'none';
+}
+function resetForm() {
+  document.getElementById('editId').value = '';
+  document.getElementById('formHeading').textContent = 'Crear publicación';
+  ['fTitle','fBody','fButtonText','fLinkUrl'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fCategory').value = 'comunicado';
+  document.getElementById('fFeatured').checked = false;
+  document.getElementById('fPublish').checked = true;
+  uploadedUrls = []; renderImgPreviews(); setDefaultDate(); updatePreview();
+}
+document.getElementById('resetBtn').addEventListener('click', resetForm);
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { showToast('El título es obligatorio', true); return; }
+  const id = document.getElementById('editId').value;
+  const payload = {
+    title,
+    body: document.getElementById('fBody').value.trim(),
+    category: document.getElementById('fCategory').value,
+    button_text: document.getElementById('fButtonText').value.trim() || null,
+    link_url: document.getElementById('fLinkUrl').value.trim() || null,
+    images: uploadedUrls,
+    featured: document.getElementById('fFeatured').checked,
+    status: document.getElementById('fPublish').checked ? 'published' : 'draft',
+    published_at: fromLocalInput(document.getElementById('fDate').value),
+    updated_at: new Date().toISOString()
   };
-  if(id){const i=posts.findIndex(p=>p.id===id);if(i>=0)posts[i]={...posts[i],...payload};showToast('Publicación actualizada')}
-  else{payload.id=uid();payload.created_at=new Date().toISOString();payload.order=posts.length?Math.min(...posts.map(p=>p.order??0))-1:0;posts.unshift(payload);showToast('Publicación guardada')}
-  savePosts(posts);resetForm();renderList();
+  document.getElementById('saveBtn').disabled = true;
+  let error;
+  if (id) {
+    ({ error } = await sb.from('publicaciones').update(payload).eq('id', id));
+  } else {
+    const minOrder = postsCache.length ? Math.min(...postsCache.map(p => p.sort_order ?? 0)) - 1 : 0;
+    payload.sort_order = minOrder;
+    ({ error } = await sb.from('publicaciones').insert(payload));
+  }
+  document.getElementById('saveBtn').disabled = false;
+  if (error) { showToast('Error: ' + error.message, true); return; }
+  showToast(id ? 'Actualizada en la nube' : 'Guardada en la nube');
+  resetForm();
+  await loadPosts();
 });
-function sortedPosts(){const p=loadPosts();return p.slice().sort((a,b)=>{const oa=a.order??0,ob=b.order??0;if(oa!==ob)return oa-ob;return new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0)})}
-function renderList(){
-  const posts=sortedPosts();const tbody=document.getElementById('postsTable');
-  if(!posts.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#5A6459;padding:16px">Ninguna aún</td></tr>';return}
-  tbody.innerHTML=posts.map((p,idx)=>`<tr>
+
+async function loadPosts() {
+  const { data, error } = await sb.from('publicaciones').select('*').order('sort_order', { ascending: true }).order('published_at', { ascending: false });
+  if (error) {
+    document.getElementById('postsTable').innerHTML = `<tr><td colspan="6" style="color:#B23A2E;padding:16px">Error: ${escapeHtml(error.message)}. ¿Ejecutaste el SQL extra (featured, sort_order)?</td></tr>`;
+    return;
+  }
+  postsCache = data || [];
+  renderList();
+}
+
+function renderList() {
+  const posts = postsCache.slice().sort((a, b) => {
+    const oa = a.sort_order ?? 0, ob = b.sort_order ?? 0;
+    if (oa !== ob) return oa - ob;
+    return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
+  });
+  const tbody = document.getElementById('postsTable');
+  if (!posts.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#5A6459;padding:16px">Ninguna en la nube aún</td></tr>';
+    return;
+  }
+  tbody.innerHTML = posts.map(p => `<tr>
     <td><div class="row-actions">
-      <button class="chip-btn btn-sm" title="Subir" onclick="movePost('${p.id}',-1)">↑</button>
-      <button class="chip-btn btn-sm" title="Bajar" onclick="movePost('${p.id}',1)">↓</button>
+      <button class="chip-btn btn-sm" onclick="movePost('${p.id}',-1)">↑</button>
+      <button class="chip-btn btn-sm" onclick="movePost('${p.id}',1)">↓</button>
     </div></td>
     <td>${escapeHtml(p.title)}</td>
-    <td>${escapeHtml((p.published_at||p.created_at||'').slice(0,16).replace('T',' '))}</td>
-    <td>${p.status==='published'?'Publicado':'Borrador'}</td>
-    <td>${p.featured?'Sí':'No'}</td>
+    <td>${escapeHtml(String(p.published_at || p.created_at || '').slice(0,16).replace('T',' '))}</td>
+    <td>${p.status === 'published' ? 'Publicado' : 'Borrador'}</td>
+    <td>${p.featured ? 'Sí' : 'No'}</td>
     <td><div class="row-actions">
       <button class="chip-btn btn-sm" onclick="editPost('${p.id}')">Editar</button>
       <button class="chip-btn btn-sm" onclick="deletePost('${p.id}')">Eliminar</button>
-    </div></td></tr>`).join('');
+    </div></td>
+  </tr>`).join('');
 }
-window.editPost=function(id){
-  const p=loadPosts().find(x=>x.id===id);if(!p)return;
-  document.getElementById('editId').value=p.id;document.getElementById('formHeading').textContent='Editar publicación';
-  document.getElementById('fTitle').value=p.title||'';document.getElementById('fBody').value=p.body||'';
-  document.getElementById('fCategory').value=p.category||'comunicado';
-  document.getElementById('fButtonText').value=p.button_text||'';document.getElementById('fLinkUrl').value=p.link_url||'';
-  document.getElementById('fFeatured').checked=!!p.featured;document.getElementById('fPublish').checked=p.status==='published';
-  document.getElementById('fDate').value=toLocalInput(p.published_at||p.created_at);
-  uploadedUrls=(p.images||[]).slice();renderImgPreviews();updatePreview();
-  window.scrollTo({top:0,behavior:'smooth'});
+
+window.editPost = function (id) {
+  const p = postsCache.find(x => x.id === id); if (!p) return;
+  document.getElementById('editId').value = p.id;
+  document.getElementById('formHeading').textContent = 'Editar publicación';
+  document.getElementById('fTitle').value = p.title || '';
+  document.getElementById('fBody').value = p.body || '';
+  document.getElementById('fCategory').value = p.category || 'comunicado';
+  document.getElementById('fButtonText').value = p.button_text || '';
+  document.getElementById('fLinkUrl').value = p.link_url || '';
+  document.getElementById('fFeatured').checked = !!p.featured;
+  document.getElementById('fPublish').checked = p.status === 'published';
+  document.getElementById('fDate').value = toLocalInput(p.published_at || p.created_at);
+  uploadedUrls = Array.isArray(p.images) ? p.images.slice() : [];
+  renderImgPreviews(); updatePreview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
-window.deletePost=function(id){if(!confirm('¿Eliminar esta publicación?'))return;savePosts(loadPosts().filter(p=>p.id!==id));renderList();showToast('Eliminada')};
-window.movePost=function(id,dir){
-  let posts=sortedPosts();const i=posts.findIndex(p=>p.id===id);if(i<0)return;const j=i+dir;if(j<0||j>=posts.length)return;
-  const tmp=posts[i].order??i;posts[i].order=posts[j].order??j;posts[j].order=tmp;
-  // ensure unique orders
-  posts.forEach((p,idx)=>{p.order=idx});
-  // swap positions in array sense by reassigning sequential order after swap
-  const item=posts.splice(i,1)[0];posts.splice(j,0,item);posts.forEach((p,idx)=>{p.order=idx});
-  savePosts(posts);renderList();showToast('Orden actualizado');
+
+window.deletePost = async function (id) {
+  if (!confirm('¿Eliminar esta publicación de la nube?')) return;
+  const { error } = await sb.from('publicaciones').delete().eq('id', id);
+  if (error) { showToast(error.message, true); return; }
+  showToast('Eliminada');
+  await loadPosts();
 };
-function loadAnnUI(){const a=loadAnn();document.getElementById('annEnabled').checked=!!a.enabled;document.getElementById('annText').value=a.text||'';document.getElementById('annLink').value=a.link||''}
-document.getElementById('saveAnnBtn').addEventListener('click',()=>{saveAnn({enabled:document.getElementById('annEnabled').checked,text:document.getElementById('annText').value.trim(),link:document.getElementById('annLink').value.trim()});showToast('Barra guardada')});
-function loadSbUI(){try{const c=JSON.parse(localStorage.getItem(STORAGE_SB)||'{}');document.getElementById('sbUrl').value=c.url||'';document.getElementById('sbKey').value=c.key||''}catch{}}
-document.getElementById('saveSbBtn').addEventListener('click',()=>{
-  localStorage.setItem(STORAGE_SB,JSON.stringify({url:document.getElementById('sbUrl').value.trim(),key:document.getElementById('sbKey').value.trim()}));
-  showToast('Datos de Supabase guardados en este navegador (siguiente paso: activar sync)');
+
+window.movePost = async function (id, dir) {
+  const posts = postsCache.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const i = posts.findIndex(p => p.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= posts.length) return;
+  const a = posts[i], b = posts[j];
+  const orderA = a.sort_order ?? i, orderB = b.sort_order ?? j;
+  const { error: e1 } = await sb.from('publicaciones').update({ sort_order: orderB }).eq('id', a.id);
+  const { error: e2 } = await sb.from('publicaciones').update({ sort_order: orderA }).eq('id', b.id);
+  if (e1 || e2) { showToast((e1 || e2).message, true); return; }
+  showToast('Orden actualizado');
+  await loadPosts();
+};
+
+function loadAnnUI() {
+  try {
+    const a = JSON.parse(localStorage.getItem('rn_announcement') || '{}');
+    document.getElementById('annEnabled').checked = !!a.enabled;
+    document.getElementById('annText').value = a.text || '';
+    document.getElementById('annLink').value = a.link || '';
+  } catch {}
+}
+document.getElementById('saveAnnBtn').addEventListener('click', () => {
+  localStorage.setItem('rn_announcement', JSON.stringify({
+    enabled: document.getElementById('annEnabled').checked,
+    text: document.getElementById('annText').value.trim(),
+    link: document.getElementById('annLink').value.trim()
+  }));
+  showToast('Barra guardada (local)');
 });
+
 updatePreview();
 </script>
 </body>
