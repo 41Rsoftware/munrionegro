@@ -203,6 +203,95 @@ footer ul a:hover{color:#fff;}
   .search-box{display:none;}
   .stat-row{grid-template-columns:repeat(2,1fr);}
 }
+
+/* ---- Admin modal (acceso desde index) ---- */
+button.admin-dot{
+  width:22px; height:22px; border-radius:4px;
+  border:1px solid rgba(255,255,255,.3);
+  background:transparent; color:inherit; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  transition: background .18s ease, transform .18s ease, border-color .18s ease;
+  padding:0; font:inherit;
+}
+button.admin-dot:hover{
+  background:rgba(255,255,255,.14);
+  border-color:rgba(255,255,255,.5);
+  transform: rotate(25deg);
+}
+button.admin-dot:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-width:1.6;}
+
+#adminAuthOverlay{
+  display:none; position:fixed; inset:0; z-index:9999;
+  align-items:center; justify-content:center; padding:20px;
+}
+#adminAuthOverlay.open{display:flex;}
+#adminAuthOverlay .admin-blur{
+  position:absolute; inset:0;
+  background: rgba(10, 26, 17, 0.48);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+#adminAuthOverlay .admin-modal{
+  position:relative; z-index:1;
+  width:380px; max-width:100%;
+  background: rgba(255,255,255,0.97);
+  border-radius:16px;
+  padding:36px 32px 28px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.1);
+  animation: adminModalIn .22s ease;
+}
+@keyframes adminModalIn{
+  from{ opacity:0; transform: translateY(10px) scale(.98); }
+  to{ opacity:1; transform: none; }
+}
+#adminAuthOverlay .admin-modal .brand-row{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px;
+}
+#adminAuthOverlay .admin-modal .brand-icon{
+  width:40px; height:40px; border-radius:10px;
+  background:#14311F; color:#fff;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+#adminAuthOverlay .admin-modal .brand-icon svg{width:20px; height:20px; stroke:#fff; fill:none; stroke-width:1.7;}
+#adminAuthOverlay .admin-modal h2{
+  font-family: var(--font-body); font-size:17px; font-weight:700; color:#14311F; margin:0 0 2px;
+}
+#adminAuthOverlay .admin-modal .sub{ font-size:12.5px; color:#5A6459; margin:0; }
+#adminAuthOverlay .admin-modal label{
+  display:block; font-size:12.5px; font-weight:600; color:#1D2620; margin:18px 0 7px;
+}
+#adminAuthOverlay .admin-modal input[type=password]{
+  width:100%; box-sizing:border-box;
+  border:1px solid #DCE3DD; border-radius:8px;
+  padding:12px 14px; font-size:14px; font-family:inherit;
+  background:#fff; color:#1D2620;
+}
+#adminAuthOverlay .admin-modal input[type=password]:focus{
+  outline:2px solid #2A6B47; outline-offset:1px;
+}
+#adminAuthOverlay .admin-modal .actions{ display:flex; gap:10px; margin-top:22px; }
+#adminAuthOverlay .admin-modal .btn-primary{
+  flex:1; border:none; border-radius:8px; cursor:pointer;
+  background:#14311F; color:#fff; font-weight:600; font-size:13.5px;
+  padding:12px 16px; transition: background .15s; font-family:inherit;
+}
+#adminAuthOverlay .admin-modal .btn-primary:hover{ background:#2A6B47; }
+#adminAuthOverlay .admin-modal .btn-ghost{
+  border:1px solid #DCE3DD; border-radius:8px; cursor:pointer;
+  background:#fff; color:#1D2620; font-weight:600; font-size:13.5px;
+  padding:12px 16px; font-family:inherit;
+}
+#adminAuthOverlay .admin-modal .btn-ghost:hover{ background:#EEF3EE; }
+#adminAuthOverlay .admin-error{ display:none; margin-top:12px; font-size:12.5px; color:#B23A2E; }
+#adminAuthOverlay .admin-error.show{ display:block; }
+#adminAuthOverlay .admin-close{
+  position:absolute; top:14px; right:14px;
+  width:32px; height:32px; border:none; background:transparent;
+  border-radius:8px; cursor:pointer; color:#5A6459; font-size:20px; line-height:1;
+}
+#adminAuthOverlay .admin-close:hover{ background:#EEF3EE; color:#14311F; }
+
 </style>
 </head>
 <body>
@@ -216,9 +305,9 @@ footer ul a:hover{color:#fff;}
     <div class="utility-right">
       <span>Síguenos</span>
       <a class="social-dot" href="https://facebook.com/MuniRioNegroOficial" target="_blank" rel="noopener" title="Facebook">f</a>
-      <a class="admin-dot" href="admin.html" title="Administrador">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-      </a>
+      <button type="button" class="admin-dot" id="adminOpenBtn" title="Administrador" aria-label="Abrir acceso administrador">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
     </div>
   </div>
 </div>
@@ -424,5 +513,91 @@ footer ul a:hover{color:#fff;}
     </div>
   </div>
 </footer>
+
+<!-- Modal acceso administrador -->
+<div id="adminAuthOverlay" role="dialog" aria-modal="true" aria-labelledby="adminAuthTitle">
+  <div class="admin-blur" data-close="1"></div>
+  <div class="admin-modal">
+    <button type="button" class="admin-close" id="adminCloseBtn" aria-label="Cerrar">×</button>
+    <div class="brand-row">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </div>
+      <div>
+        <h2 id="adminAuthTitle">Modo administrador</h2>
+        <p class="sub">Municipalidad Distrital de Río Negro</p>
+      </div>
+    </div>
+    <label for="adminPassInput">Contraseña</label>
+    <input type="password" id="adminPassInput" autocomplete="current-password" placeholder="Ingrese su contraseña">
+    <div class="admin-error" id="adminAuthError">Acceso denegado.</div>
+    <div class="actions">
+      <button type="button" class="btn-ghost" id="adminCancelBtn">Cancelar</button>
+      <button type="button" class="btn-primary" id="adminSubmitBtn">Ingresar</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  const ADMIN_PASS_HASH = '7f46db11702dfd10a845626bcece60a03f8728180b3e82e12cefef7beeb64f86';
+  const overlay = document.getElementById('adminAuthOverlay');
+  const openBtn = document.getElementById('adminOpenBtn');
+  const closeBtn = document.getElementById('adminCloseBtn');
+  const cancelBtn = document.getElementById('adminCancelBtn');
+  const submitBtn = document.getElementById('adminSubmitBtn');
+  const passInput = document.getElementById('adminPassInput');
+  const errBox = document.getElementById('adminAuthError');
+  if (!overlay || !openBtn) return;
+
+  async function sha256(message) {
+    const data = new TextEncoder().encode(message);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  function openModal() {
+    errBox.classList.remove('show');
+    passInput.value = '';
+    overlay.classList.add('open');
+    setTimeout(function () { passInput.focus(); }, 40);
+  }
+  function closeModal() {
+    overlay.classList.remove('open');
+    passInput.value = '';
+    errBox.classList.remove('show');
+  }
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) {
+    if (e.target.getAttribute('data-close') === '1') closeModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+  });
+  passInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') submitBtn.click();
+  });
+  submitBtn.addEventListener('click', async function () {
+    var password = passInput.value;
+    errBox.classList.remove('show');
+    if (!password) {
+      errBox.textContent = 'Acceso denegado.';
+      errBox.classList.add('show');
+      return;
+    }
+    var hash = await sha256(password);
+    if (hash === ADMIN_PASS_HASH) {
+      sessionStorage.setItem('rn_admin_session', '1');
+      window.location.href = 'admin.html';
+    } else {
+      errBox.textContent = 'Acceso denegado.';
+      errBox.classList.add('show');
+      passInput.value = '';
+      passInput.focus();
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
