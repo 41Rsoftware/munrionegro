@@ -5,592 +5,257 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administrador | Municipalidad Distrital de Río Negro</title>
 <meta name="robots" content="noindex, nofollow">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --verde-oscuro:#14311F; --verde-medio:#2A6B47; --verde-tenue:#EEF3EE;
-  --rojo:#B23A2E; --rojo-tenue:#F8E9E7; --borde:#DCE3DD; --texto:#1D2620;
-  --texto-secundario:#5A6459; --blanco:#FFFFFF;
+  --rojo:#B23A2E; --borde:#DCE3DD; --texto:#1D2620; --texto-secundario:#5A6459;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{font-family:'Inter',sans-serif; background:#F4F6F4; color:var(--texto); font-size:14px;}
-a{color:inherit; text-decoration:none;}
-
-/* ---- Login gate ---- */
-#loginScreen{
-  min-height:100vh; display:flex; align-items:center; justify-content:center;
-  background: linear-gradient(135deg, rgba(20,49,31,.92), rgba(20,49,31,.85)),
-              url('IMG/fondo.png') center/cover no-repeat;
-  background-color: var(--verde-oscuro);
-  position: relative;
-}
-#loginScreen::before{
-  content:''; position:absolute; inset:0;
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  background: rgba(10,26,17,.35);
-}
-.login-box{
-  position:relative; z-index:1;
-  background:rgba(255,255,255,.96);
-  padding:42px 38px; border-radius:14px; width:360px; max-width:92vw;
-  box-shadow:0 24px 60px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08);
-  backdrop-filter: blur(8px);
-}
-.login-box h1{font-size:18px; color:var(--verde-oscuro); margin-bottom:6px; letter-spacing:-.01em;}
+button,input,textarea,select{font-family:inherit;}
+#loginScreen{min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,rgba(20,49,31,.92),rgba(20,49,31,.85)); position:relative;}
+#loginScreen::before{content:''; position:absolute; inset:0; backdrop-filter:blur(14px); background:rgba(10,26,17,.35);}
+.login-box{position:relative; z-index:1; background:rgba(255,255,255,.97); padding:42px 38px; border-radius:14px; width:360px; max-width:92vw; box-shadow:0 24px 60px rgba(0,0,0,.35);}
+.login-box h1{font-size:18px; color:var(--verde-oscuro); margin-bottom:6px;}
 .login-box .sub{font-size:12.5px; color:var(--texto-secundario); margin-bottom:26px; line-height:1.45;}
 .field{margin-bottom:14px;}
-.field label{display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; color:var(--texto);}
-.field input{width:100%; border:1px solid var(--borde); border-radius:5px; padding:10px 12px; font-size:13.5px; font-family:inherit;}
-.field input:focus{outline:2px solid var(--verde-medio); outline-offset:1px;}
-.btn{background:var(--verde-oscuro); color:#fff; border:none; padding:11px 18px; border-radius:5px; font-weight:600; font-size:13.5px; cursor:pointer; width:100%;}
+.field label{display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;}
+.field input,.field textarea,.field select{width:100%; border:1px solid var(--borde); border-radius:8px; padding:11px 12px; font-size:13.5px;}
+.field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--verde-medio); outline-offset:1px;}
+.btn{background:var(--verde-oscuro); color:#fff; border:none; padding:11px 18px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer;}
 .btn:hover{background:var(--verde-medio);}
-.btn-danger{background:var(--rojo);}
-.btn-danger:hover{background:#96291f;}
 .btn-outline{background:#fff; border:1px solid var(--borde); color:var(--texto);}
 .btn-outline:hover{background:var(--verde-tenue);}
 #loginError{color:var(--rojo); font-size:12.5px; margin-top:10px; display:none;}
-
-/* ---- Admin shell ---- */
 #adminShell{display:none; min-height:100vh;}
 .topbar{background:var(--verde-oscuro); color:#fff; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 22px;}
 .topbar .brand{font-weight:700; font-size:14px;}
 .topbar .who{font-size:12.5px; color:#cfe2d6; display:flex; align-items:center; gap:12px;}
 .layout{display:flex; min-height:calc(100vh - 56px);}
-.sidebar{width:210px; background:#fff; border-right:1px solid var(--borde); padding:18px 10px;}
-.sidebar a{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:6px; font-size:13.5px; font-weight:500; color:var(--texto-secundario); margin-bottom:2px;}
-.sidebar a.active, .sidebar a:hover{background:var(--verde-tenue); color:var(--verde-oscuro);}
-.main{flex:1; padding:26px 30px; overflow-y:auto;}
+.sidebar{width:220px; background:#fff; border-right:1px solid var(--borde); padding:18px 12px; display:flex; flex-direction:column; gap:4px;}
+.sidebar a{display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:8px; font-size:13.5px; font-weight:500; color:var(--texto-secundario); text-decoration:none;}
+.sidebar a svg{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.7; flex-shrink:0;}
+.sidebar a.active,.sidebar a:hover{background:var(--verde-tenue); color:var(--verde-oscuro);}
+.main{flex:1; padding:26px 28px; overflow-y:auto;}
 .main h2{font-size:19px; color:var(--verde-oscuro); margin-bottom:4px;}
 .main .desc{font-size:13px; color:var(--texto-secundario); margin-bottom:20px;}
-
-.toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;}
-.toolbar input[type=text]{border:1px solid var(--borde); border-radius:5px; padding:9px 12px; font-size:13px; width:220px;}
-.filter-chip{border:1px solid var(--borde); background:#fff; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--texto-secundario); cursor:pointer;}
-.filter-chip.active{background:var(--verde-oscuro); color:#fff; border-color:var(--verde-oscuro);}
-
-table{width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--borde); border-radius:8px; overflow:hidden;}
-th,td{text-align:left; padding:11px 14px; font-size:13px; border-bottom:1px solid var(--borde);}
-th{background:var(--verde-tenue); color:var(--verde-oscuro); font-size:11.5px; text-transform:uppercase; letter-spacing:.02em;}
-tr:last-child td{border-bottom:none;}
-.badge{font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:4px; text-transform:uppercase;}
-.badge-published{background:#E3F3E8; color:#1F6B45;}
-.badge-draft{background:#F0F1EF; color:#84887f;}
-.badge-archived{background:var(--rojo-tenue); color:var(--rojo);}
-.row-actions{display:flex; gap:6px;}
-.icon-btn{border:1px solid var(--borde); background:#fff; width:30px; height:30px; border-radius:5px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
-.icon-btn:hover{background:var(--verde-tenue);}
-.icon-btn svg{width:15px; height:15px; stroke:var(--texto);}
-
-/* modal / editor */
-.overlay{display:none; position:fixed; inset:0; background:rgba(10,26,17,.5); align-items:center; justify-content:center; z-index:200; padding:20px;}
-.editor{background:#fff; width:640px; max-width:100%; max-height:88vh; overflow-y:auto; border-radius:8px; padding:26px;}
-.editor h3{font-size:16px; margin-bottom:18px; color:var(--verde-oscuro);}
-.editor .field{margin-bottom:14px;}
-.editor textarea{width:100%; border:1px solid var(--borde); border-radius:5px; padding:10px 12px; font-size:13.5px; font-family:inherit; resize:vertical; min-height:80px;}
-.editor select{width:100%; border:1px solid var(--borde); border-radius:5px; padding:10px 12px; font-size:13.5px; font-family:inherit;}
-.editor .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-.editor .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--borde);}
-.editor .actions .btn{width:auto;}
-.preview-box{border:1px dashed var(--borde); border-radius:6px; padding:14px; margin-top:6px; font-size:12.5px; color:var(--texto-secundario);}
-#imgPreviewList{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
-#imgPreviewList img{width:60px; height:60px; object-fit:cover; border-radius:4px; border:1px solid var(--borde);}
-.toast{position:fixed; bottom:20px; right:20px; background:var(--verde-oscuro); color:#fff; padding:12px 18px; border-radius:6px; font-size:13px; z-index:300; display:none;}
+.composer{display:grid; grid-template-columns:1.15fr .85fr; gap:20px; align-items:start;}
+@media (max-width:960px){.composer{grid-template-columns:1fr;}}
+.card{background:#fff; border:1px solid var(--borde); border-radius:12px; padding:18px; margin-bottom:14px;}
+.card h3{font-size:13px; font-weight:600; color:var(--verde-oscuro); margin-bottom:10px;}
+.card .hint{font-size:12px; color:var(--texto-secundario); margin-bottom:12px; line-height:1.4;}
+.chip-btn{border:1px solid var(--borde); background:#fff; border-radius:8px; padding:8px 12px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--texto);}
+.chip-btn:hover{background:var(--verde-tenue);}
+.actions-bar{display:flex; justify-content:flex-end; gap:10px; margin-top:8px; flex-wrap:wrap;}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0;}
+.toggle-row .lbl{font-size:13px; font-weight:600;}
+.toggle-row .sublbl{font-size:11.5px; color:var(--texto-secundario); font-weight:400; margin-top:2px;}
+.switch{position:relative; width:44px; height:24px; flex-shrink:0;}
+.switch input{opacity:0; width:0; height:0;}
+.switch .slider{position:absolute; inset:0; background:#c5cdc6; border-radius:999px; cursor:pointer; transition:.2s;}
+.switch .slider::before{content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s;}
+.switch input:checked + .slider{background:var(--verde-medio);}
+.switch input:checked + .slider::before{transform:translateX(20px);}
+.preview-wrap h3{font-size:13px; font-weight:600; color:var(--texto-secundario); margin-bottom:10px;}
+.preview-card{background:#fff; border:1px solid var(--borde); border-radius:12px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,.06);}
+.preview-card.featured{display:grid; grid-template-columns:1.2fr 1fr;}
+@media (max-width:960px){.preview-card.featured{grid-template-columns:1fr;}}
+.preview-img{min-height:160px; background:var(--verde-tenue); display:flex; align-items:center; justify-content:center; color:var(--texto-secundario); font-size:12px;}
+.preview-img img{width:100%; height:100%; object-fit:cover; display:block; max-height:220px;}
+.preview-body{padding:18px;}
+.preview-body .badge{display:inline-flex; font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px; background:#F8E9E7; color:var(--rojo); text-transform:uppercase; margin-bottom:8px;}
+.preview-body h4{font-size:17px; color:var(--verde-oscuro); margin-bottom:8px; line-height:1.3;}
+.preview-body p{font-size:13px; color:var(--texto-secundario); line-height:1.5;}
+.preview-body .cta{display:inline-block; margin-top:12px; background:var(--verde-oscuro); color:#fff; padding:9px 14px; border-radius:6px; font-size:12.5px; font-weight:600; text-decoration:none;}
+#imgPreviewList{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+#imgPreviewList img{width:64px; height:64px; object-fit:cover; border-radius:6px; border:1px solid var(--borde);}
+.list-simple{margin-top:18px;}
+.list-simple table{width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--borde); border-radius:10px; overflow:hidden;}
+.list-simple th,.list-simple td{text-align:left; padding:10px 12px; font-size:13px; border-bottom:1px solid var(--borde);}
+.list-simple th{background:var(--verde-tenue); color:var(--verde-oscuro); font-size:11px; text-transform:uppercase;}
+.toast{position:fixed; bottom:20px; right:20px; background:var(--verde-oscuro); color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; z-index:300; display:none;}
 .toast.error{background:var(--rojo);}
-.empty-row td{text-align:center; color:var(--texto-secundario); padding:30px;}
-
-@media (max-width:760px){
-  .layout{flex-direction:column;}
-  .sidebar{width:100%; display:flex; overflow-x:auto; border-right:none; border-bottom:1px solid var(--borde);}
-  .sidebar a{white-space:nowrap;}
-  table{font-size:12px;}
-}
 </style>
 </head>
 <body>
-
-<!-- ================= LOGIN ================= -->
 <div id="loginScreen">
   <div class="login-box">
     <h1>Acceso administrador</h1>
-    <div class="sub">Municipalidad Distrital de Río Negro<br>Ingrese la clave para continuar al panel de gestión.</div>
-    <div class="field">
-      <label>Contraseña de administrador</label>
-      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <button class="btn" id="loginBtn">Ingresar</button>
+    <div class="sub">Municipalidad Distrital de Río Negro<br>Ingrese la clave para continuar.</div>
+    <div class="field"><label>Contraseña de administrador</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn" id="loginBtn" style="width:100%;">Ingresar</button>
     <div id="loginError"></div>
   </div>
 </div>
-
-<!-- ================= ADMIN SHELL ================= -->
 <div id="adminShell">
   <div class="topbar">
     <div class="brand">Río Negro · Panel administrativo</div>
-    <div class="who">
-      <span id="whoEmail"></span>
-      <button class="btn btn-outline" style="width:auto; padding:7px 14px;" id="logoutBtn">Cerrar sesión</button>
+    <div class="who"><span>Administrador</span>
+      <button class="btn btn-outline" style="width:auto;padding:7px 14px;color:#14311F;" id="logoutBtn">Cerrar sesión</button>
     </div>
   </div>
   <div class="layout">
     <aside class="sidebar">
-      <a href="#" class="active" data-view="publicaciones">Publicaciones</a>
-      <a href="#" data-view="log">Registro de actividad</a>
-      <a href="#" data-view="ayuda">Ayuda</a>
+      <a href="#" class="active" data-view="publicaciones">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Añadir publicación
+      </a>
+      <a href="#" data-view="aviso">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v3H4zM4 12h16v6H4z"/></svg>
+        Barra de avisos
+      </a>
     </aside>
     <main class="main">
-
-      <!-- ---- Publicaciones view ---- -->
       <div id="view-publicaciones">
-        <h2>Publicidad y contenido</h2>
-        <div class="desc">Crea, edita y publica el contenido que aparece en la sección "Publicaciones" del sitio.</div>
-        <div class="toolbar">
-          <div style="display:flex; gap:6px; flex-wrap:wrap;" id="catFilters">
-            <button class="filter-chip active" data-cat="todos">Todos</button>
-            <button class="filter-chip" data-cat="comunicado">Comunicados</button>
-            <button class="filter-chip" data-cat="noticia">Noticias</button>
-            <button class="filter-chip" data-cat="obra">Obras</button>
-            <button class="filter-chip" data-cat="actividad">Actividades</button>
-            <button class="filter-chip" data-cat="cultura">Cultura</button>
+        <h2>Crear publicación</h2>
+        <div class="desc">Activa el interruptor de formato grande para mostrar la publicación como aviso destacado (estilo cartel).</div>
+        <div class="composer">
+          <div>
+            <div class="card">
+              <h3>Contenido multimedia</h3>
+              <div class="hint">Agrega una o más imágenes.</div>
+              <label class="chip-btn" style="cursor:pointer;display:inline-block;">Agregar foto
+                <input type="file" id="fImages" accept="image/*" multiple hidden>
+              </label>
+              <div id="imgPreviewList"></div>
+            </div>
+            <div class="card">
+              <h3>Detalles de la publicación</h3>
+              <div class="field"><label>Título</label><input type="text" id="fTitle" placeholder="Título"></div>
+              <div class="field"><label>Texto</label><textarea id="fBody" rows="5" placeholder="Escribe el contenido..."></textarea></div>
+              <div class="field"><label>Categoría</label>
+                <select id="fCategory">
+                  <option value="comunicado">Comunicado</option>
+                  <option value="noticia">Noticia</option>
+                  <option value="obra">Obra</option>
+                  <option value="actividad">Actividad</option>
+                  <option value="cultura">Cultura</option>
+                </select>
+              </div>
+              <div class="field"><label>Texto del botón (opcional)</label><input type="text" id="fButtonText" placeholder="Ver más"></div>
+              <div class="field"><label>Enlace del botón (opcional)</label><input type="text" id="fLinkUrl" placeholder="https://..."></div>
+            </div>
+            <div class="card">
+              <div class="toggle-row">
+                <div><div class="lbl">Formato grande (destacado)</div><div class="sublbl">Se muestra como aviso grande en el inicio.</div></div>
+                <label class="switch"><input type="checkbox" id="fFeatured"><span class="slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div><div class="lbl">Publicar ahora</div><div class="sublbl">Apagado = borrador.</div></div>
+                <label class="switch"><input type="checkbox" id="fPublish" checked><span class="slider"></span></label>
+              </div>
+            </div>
+            <div class="actions-bar">
+              <button class="btn btn-outline" id="resetBtn">Limpiar</button>
+              <button class="btn" id="saveBtn">Guardar publicación</button>
+            </div>
           </div>
-          <div style="display:flex; gap:10px;">
-            <input type="text" id="searchBox" placeholder="Buscar publicación...">
-            <button class="btn" style="width:auto;" id="newPostBtn">+ Nueva publicación</button>
+          <div class="preview-wrap">
+            <h3>Vista previa</h3>
+            <div class="preview-card" id="previewCard">
+              <div class="preview-img" id="previewImg">Sin imagen</div>
+              <div class="preview-body">
+                <div class="badge" id="previewBadge">Comunicado</div>
+                <h4 id="previewTitle">Título de la publicación</h4>
+                <p id="previewBody">El texto aparecerá aquí.</p>
+                <a class="cta" href="#" id="previewCta" style="display:none;">Ver más</a>
+              </div>
+            </div>
           </div>
         </div>
-        <table>
-          <thead>
-            <tr><th>Título</th><th>Categoría</th><th>Estado</th><th>Actualizado</th><th></th></tr>
-          </thead>
-          <tbody id="postsTable">
-            <tr class="empty-row"><td colspan="5">Cargando...</td></tr>
-          </tbody>
-        </table>
+        <div class="list-simple">
+          <h3 style="font-size:14px;margin-bottom:10px;color:var(--verde-oscuro);">Publicaciones guardadas</h3>
+          <table>
+            <thead><tr><th>Título</th><th>Estado</th><th>Grande</th><th></th></tr></thead>
+            <tbody id="postsTable"><tr><td colspan="4" style="text-align:center;color:#5A6459;padding:20px;">Ninguna aún</td></tr></tbody>
+          </table>
+        </div>
       </div>
-
-      <!-- ---- Log view ---- -->
-      <div id="view-log" style="display:none;">
-        <h2>Registro de actividad</h2>
-        <div class="desc">Historial de qué se creó, editó o eliminó, con fecha y usuario.</div>
-        <table>
-          <thead><tr><th>Fecha</th><th>Acción</th><th>Tabla</th><th>Detalle</th></tr></thead>
-          <tbody id="logTable"><tr class="empty-row"><td colspan="4">Cargando...</td></tr></tbody>
-        </table>
+      <div id="view-aviso" style="display:none;">
+        <h2>Barra de avisos</h2>
+        <div class="desc">Franja superior del sitio (announcement bar).</div>
+        <div class="card" style="max-width:560px;">
+          <div class="toggle-row">
+            <div><div class="lbl">Mostrar barra de avisos</div><div class="sublbl">Activa o desactiva el cartel superior.</div></div>
+            <label class="switch"><input type="checkbox" id="annEnabled"><span class="slider"></span></label>
+          </div>
+          <div class="field"><label>Texto del aviso</label><input type="text" id="annText" placeholder="Ej: Horario especial de atención"></div>
+          <div class="field"><label>Enlace (opcional)</label><input type="text" id="annLink" placeholder="https://..."></div>
+          <button class="btn" id="saveAnnBtn">Guardar barra de avisos</button>
+        </div>
       </div>
-
-      <!-- ---- Help view ---- -->
-      <div id="view-ayuda" style="display:none;">
-        <h2>Ayuda</h2>
-        <div class="desc">Modo local activo: el login y las publicaciones se guardan en este navegador (localStorage). Cuando conectes Supabase, los datos podrán migrarse a la base de datos en la nube.</div>
-      </div>
-
     </main>
   </div>
 </div>
-
-<!-- ================= EDITOR MODAL ================= -->
-<div class="overlay" id="editorOverlay">
-  <div class="editor">
-    <h3 id="editorTitle">Nueva publicación</h3>
-    <input type="hidden" id="editId">
-    <div class="field">
-      <label>Título</label>
-      <input type="text" id="fTitle">
-    </div>
-    <div class="field">
-      <label>Subtítulo</label>
-      <input type="text" id="fSubtitle">
-    </div>
-    <div class="field">
-      <label>Texto</label>
-      <textarea id="fBody"></textarea>
-    </div>
-    <div class="grid2">
-      <div class="field">
-        <label>Categoría</label>
-        <select id="fCategory">
-          <option value="comunicado">Comunicado</option>
-          <option value="noticia">Noticia</option>
-          <option value="obra">Obra</option>
-          <option value="actividad">Actividad</option>
-          <option value="cultura">Cultura y turismo</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Estado</label>
-        <select id="fStatus">
-          <option value="draft">Borrador</option>
-          <option value="published">Publicado</option>
-          <option value="archived">Archivado (papelera)</option>
-        </select>
-      </div>
-    </div>
-    <div class="grid2">
-      <div class="field">
-        <label>Texto del botón (opcional)</label>
-        <input type="text" id="fButtonText" placeholder="Ver más">
-      </div>
-      <div class="field">
-        <label>Enlace del botón (opcional)</label>
-        <input type="text" id="fLinkUrl" placeholder="https://...">
-      </div>
-    </div>
-    <div class="field">
-      <label>Etiquetas (separadas por coma)</label>
-      <input type="text" id="fTags" placeholder="agua, medio ambiente">
-    </div>
-    <div class="field">
-      <label>Imágenes</label>
-      <input type="file" id="fImages" accept="image/*" multiple>
-      <div id="imgPreviewList"></div>
-    </div>
-    <div class="actions">
-      <button class="btn btn-outline" style="width:auto;" id="cancelEditBtn">Cancelar</button>
-      <button class="btn" style="width:auto;" id="saveDraftBtn">Guardar borrador</button>
-      <button class="btn" style="width:auto; background:var(--verde-medio);" id="publishBtn">Publicar</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-/* =====================================================================
-   MODO LOCAL (sin Supabase)
-   Cambia el correo y la contraseña aquí abajo.
-   Cuando tengas Supabase, se puede volver a conectar fácilmente.
-   ===================================================================== */
-/* Hash SHA-256 de la contraseña (la contraseña en texto plano NO está en el código) */
-const ADMIN_PASS_HASH = '7f46db11702dfd10a845626bcece60a03f8728180b3e82e12cefef7beeb64f86';
-const LOCAL_EMAIL = 'Administrador';
-
-const STORAGE_POSTS = 'rn_publicaciones';
-const STORAGE_LOG = 'rn_activity_log';
-
-let currentUser = null;
-let uploadedUrls = [];
-let allPosts = [];
-let activeCat = 'todos';
-
-async function sha256(message) {
-  const data = new TextEncoder().encode(message);
-  const buf = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function uid() {
-  return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
-}
-
-function loadPostsFromStorage() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_POSTS) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function savePostsToStorage(posts) {
-  localStorage.setItem(STORAGE_POSTS, JSON.stringify(posts));
-}
-
-function loadLogFromStorage() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_LOG) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function saveLogToStorage(log) {
-  localStorage.setItem(STORAGE_LOG, JSON.stringify(log));
-}
-
-/* ---------- LOGIN ---------- */
-document.getElementById('loginBtn').addEventListener('click', async () => {
-  const password = document.getElementById('loginPassword').value;
-  const errBox = document.getElementById('loginError');
-  errBox.style.display = 'none';
-
-  const hash = await sha256(password);
-  if (hash === ADMIN_PASS_HASH) {
-    currentUser = { email: LOCAL_EMAIL };
-    sessionStorage.setItem('rn_admin_session', '1');
-    enterAdmin();
-  } else {
-    errBox.textContent = 'Acceso denegado.';
-    errBox.style.display = 'block';
-  }
+const ADMIN_PASS_HASH='7f46db11702dfd10a845626bcece60a03f8728180b3e82e12cefef7beeb64f86';
+const STORAGE_POSTS='rn_publicaciones';
+const STORAGE_ANN='rn_announcement';
+let uploadedUrls=[];
+async function sha256(message){const data=new TextEncoder().encode(message);const buf=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+function uid(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
+function loadPosts(){try{return JSON.parse(localStorage.getItem(STORAGE_POSTS)||'[]');}catch{return[];}}
+function savePosts(p){localStorage.setItem(STORAGE_POSTS,JSON.stringify(p));}
+function loadAnn(){try{return JSON.parse(localStorage.getItem(STORAGE_ANN)||'{}');}catch{return{};}}
+function saveAnn(a){localStorage.setItem(STORAGE_ANN,JSON.stringify(a));}
+function showToast(msg,isError){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(isError?' error':'');t.style.display='block';setTimeout(()=>t.style.display='none',3200);}
+document.getElementById('loginBtn').addEventListener('click',async()=>{
+  const password=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');err.style.display='none';
+  if((await sha256(password))===ADMIN_PASS_HASH){sessionStorage.setItem('rn_admin_session','1');enterAdmin();}
+  else{err.textContent='Acceso denegado.';err.style.display='block';}
 });
-
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('rn_admin_session');
-  location.reload();
+document.getElementById('logoutBtn').addEventListener('click',()=>{sessionStorage.removeItem('rn_admin_session');location.reload();});
+function enterAdmin(){document.getElementById('loginScreen').style.display='none';document.getElementById('adminShell').style.display='block';renderList();loadAnnUI();}
+if(sessionStorage.getItem('rn_admin_session')==='1')enterAdmin();
+document.querySelectorAll('.sidebar a').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();document.querySelectorAll('.sidebar a').forEach(x=>x.classList.remove('active'));a.classList.add('active');const v=a.dataset.view;document.getElementById('view-publicaciones').style.display=v==='publicaciones'?'block':'none';document.getElementById('view-aviso').style.display=v==='aviso'?'block':'none';});});
+document.getElementById('fImages').addEventListener('change',async e=>{
+  for(const file of Array.from(e.target.files)){if(!file.type.startsWith('image/'))continue;if(file.size>2.5*1024*1024){showToast('Imagen muy grande (máx 2.5 MB)',true);continue;}
+    const dataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});uploadedUrls.push(dataUrl);}
+  renderImgPreviews();updatePreview();e.target.value='';
 });
-
-function checkSession() {
-  if (sessionStorage.getItem('rn_admin_session') === '1') {
-    currentUser = { email: LOCAL_EMAIL };
-    enterAdmin();
-  }
+function renderImgPreviews(){document.getElementById('imgPreviewList').innerHTML=uploadedUrls.map(u=>'<img src="'+u+'">').join('');}
+['fTitle','fBody','fCategory','fButtonText','fLinkUrl','fFeatured'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',updatePreview);el.addEventListener('change',updatePreview);});
+function updatePreview(){
+  const title=document.getElementById('fTitle').value.trim()||'Título de la publicación';
+  const body=document.getElementById('fBody').value.trim()||'El texto aparecerá aquí.';
+  const cat=document.getElementById('fCategory').value;
+  const btn=document.getElementById('fButtonText').value.trim();
+  const link=document.getElementById('fLinkUrl').value.trim();
+  const featured=document.getElementById('fFeatured').checked;
+  document.getElementById('previewTitle').textContent=title;
+  document.getElementById('previewBody').textContent=body;
+  document.getElementById('previewBadge').textContent=cat;
+  document.getElementById('previewCard').classList.toggle('featured',featured);
+  const imgBox=document.getElementById('previewImg');
+  if(uploadedUrls[0])imgBox.innerHTML='<img src="'+uploadedUrls[0]+'" alt="">';else imgBox.textContent='Sin imagen';
+  const cta=document.getElementById('previewCta');
+  if(btn){cta.style.display='inline-block';cta.textContent=btn;cta.href=link||'#';}else cta.style.display='none';
 }
-checkSession();
-
-function enterAdmin() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('adminShell').style.display = 'block';
-  document.getElementById('whoEmail').textContent = currentUser.email;
-  loadPosts();
-}
-
-/* ---------- NAV ---------- */
-document.querySelectorAll('.sidebar a').forEach(a => {
-  a.addEventListener('click', e => {
-    e.preventDefault();
-    document.querySelectorAll('.sidebar a').forEach(x => x.classList.remove('active'));
-    a.classList.add('active');
-    const view = a.dataset.view;
-    ['publicaciones', 'log', 'ayuda'].forEach(v => {
-      document.getElementById('view-' + v).style.display = (v === view) ? 'block' : 'none';
-    });
-    if (view === 'log') loadLog();
-  });
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  ['fTitle','fBody','fButtonText','fLinkUrl'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fCategory').value='comunicado';document.getElementById('fFeatured').checked=false;document.getElementById('fPublish').checked=true;
+  uploadedUrls=[];renderImgPreviews();updatePreview();
 });
-
-/* ---------- LOAD POSTS ---------- */
-function loadPosts() {
-  allPosts = loadPostsFromStorage().sort(
-    (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
-  );
-  renderPosts();
-}
-
-function renderPosts() {
-  const tbody = document.getElementById('postsTable');
-  const search = document.getElementById('searchBox').value.toLowerCase();
-  const filtered = allPosts.filter(p =>
-    (activeCat === 'todos' || p.category === activeCat) &&
-    (!search || (p.title || '').toLowerCase().includes(search))
-  );
-  if (!filtered.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No hay publicaciones todavía. Crea la primera con "+ Nueva publicación".</td></tr>';
-    return;
-  }
-  tbody.innerHTML = filtered.map(p => `
-    <tr>
-      <td>${escapeHtml(p.title)}</td>
-      <td>${escapeHtml(p.category)}</td>
-      <td><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
-      <td>${new Date(p.updated_at).toLocaleDateString('es-PE')}</td>
-      <td>
-        <div class="row-actions">
-          <button class="icon-btn" title="Editar" onclick="openEditor('${p.id}')">✎</button>
-          <button class="icon-btn" title="Duplicar" onclick="duplicatePost('${p.id}')">⧉</button>
-          <button class="icon-btn" title="Eliminar" onclick="deletePost('${p.id}')">✕</button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function statusLabel(s) {
-  return { draft: 'Borrador', published: 'Publicado', archived: 'Archivado' }[s] || s;
-}
-
-function escapeHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = s || '';
-  return d.innerHTML;
-}
-
-document.getElementById('catFilters').addEventListener('click', e => {
-  if (!e.target.classList.contains('filter-chip')) return;
-  document.querySelectorAll('#catFilters .filter-chip').forEach(c => c.classList.remove('active'));
-  e.target.classList.add('active');
-  activeCat = e.target.dataset.cat;
-  renderPosts();
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title){showToast('El título es obligatorio',true);return;}
+  const posts=loadPosts();
+  posts.unshift({id:uid(),title,body:document.getElementById('fBody').value.trim(),category:document.getElementById('fCategory').value,button_text:document.getElementById('fButtonText').value.trim(),link_url:document.getElementById('fLinkUrl').value.trim(),images:uploadedUrls.slice(),featured:document.getElementById('fFeatured').checked,status:document.getElementById('fPublish').checked?'published':'draft',created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
+  savePosts(posts);showToast('Publicación guardada');document.getElementById('resetBtn').click();renderList();
 });
-document.getElementById('searchBox').addEventListener('input', renderPosts);
-
-/* ---------- EDITOR MODAL ---------- */
-document.getElementById('newPostBtn').addEventListener('click', () => openEditor(null));
-document.getElementById('cancelEditBtn').addEventListener('click', closeEditor);
-
-function openEditor(id) {
-  uploadedUrls = [];
-  document.getElementById('editId').value = id || '';
-  document.getElementById('imgPreviewList').innerHTML = '';
-  if (id) {
-    const p = allPosts.find(x => x.id === id);
-    document.getElementById('editorTitle').textContent = 'Editar publicación';
-    document.getElementById('fTitle').value = p.title || '';
-    document.getElementById('fSubtitle').value = p.subtitle || '';
-    document.getElementById('fBody').value = p.body || '';
-    document.getElementById('fCategory').value = p.category || 'noticia';
-    document.getElementById('fStatus').value = p.status || 'draft';
-    document.getElementById('fButtonText').value = p.button_text || '';
-    document.getElementById('fLinkUrl').value = p.link_url || '';
-    document.getElementById('fTags').value = (p.tags || []).join(', ');
-    uploadedUrls = p.images || [];
-    renderImgPreviews();
-  } else {
-    document.getElementById('editorTitle').textContent = 'Nueva publicación';
-    ['fTitle', 'fSubtitle', 'fBody', 'fButtonText', 'fLinkUrl', 'fTags'].forEach(id2 => {
-      document.getElementById(id2).value = '';
-    });
-    document.getElementById('fCategory').value = 'noticia';
-    document.getElementById('fStatus').value = 'draft';
-  }
-  document.getElementById('editorOverlay').style.display = 'flex';
+function renderList(){
+  const posts=loadPosts();const tbody=document.getElementById('postsTable');
+  if(!posts.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#5A6459;padding:20px;">Ninguna aún</td></tr>';return;}
+  tbody.innerHTML=posts.map(p=>'<tr><td>'+escapeHtml(p.title)+'</td><td>'+(p.status==='published'?'Publicado':'Borrador')+'</td><td>'+(p.featured?'Sí':'No')+'</td><td><button class="chip-btn" onclick="deletePost(\''+p.id+'\')">Eliminar</button></td></tr>').join('');
 }
-
-function closeEditor() {
-  document.getElementById('editorOverlay').style.display = 'none';
-}
-
-function renderImgPreviews() {
-  document.getElementById('imgPreviewList').innerHTML = uploadedUrls
-    .map(u => `<img src="${u}">`)
-    .join('');
-}
-
-document.getElementById('fImages').addEventListener('change', async (e) => {
-  const files = Array.from(e.target.files);
-  for (const file of files) {
-    if (!file.type.startsWith('image/')) continue;
-    if (file.size > 2 * 1024 * 1024) {
-      showToast('Imagen muy grande (máx 2 MB): ' + file.name, true);
-      continue;
-    }
-    const dataUrl = await readFileAsDataURL(file);
-    uploadedUrls.push(dataUrl);
-  }
-  renderImgPreviews();
-  e.target.value = '';
-});
-
-function readFileAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function savePost(statusOverride) {
-  const id = document.getElementById('editId').value;
-  const payload = {
-    title: document.getElementById('fTitle').value.trim(),
-    subtitle: document.getElementById('fSubtitle').value.trim(),
-    body: document.getElementById('fBody').value.trim(),
-    category: document.getElementById('fCategory').value,
-    status: statusOverride || document.getElementById('fStatus').value,
-    button_text: document.getElementById('fButtonText').value.trim(),
-    link_url: document.getElementById('fLinkUrl').value.trim(),
-    tags: document.getElementById('fTags').value.split(',').map(t => t.trim()).filter(Boolean),
-    images: uploadedUrls,
-    updated_at: new Date().toISOString(),
-  };
-  if (!payload.title) {
-    showToast('El título es obligatorio', true);
-    return;
-  }
-
-  let posts = loadPostsFromStorage();
-  if (id) {
-    const idx = posts.findIndex(p => p.id === id);
-    if (idx >= 0) {
-      posts[idx] = { ...posts[idx], ...payload };
-    }
-    logActivity('updated', id, payload.title);
-  } else {
-    const newPost = {
-      id: uid(),
-      created_at: new Date().toISOString(),
-      ...payload,
-    };
-    posts.push(newPost);
-    logActivity('created', newPost.id, payload.title);
-  }
-  savePostsToStorage(posts);
-  showToast('Guardado correctamente');
-  closeEditor();
-  loadPosts();
-}
-
-document.getElementById('saveDraftBtn').addEventListener('click', () => savePost('draft'));
-document.getElementById('publishBtn').addEventListener('click', () => savePost('published'));
-
-function duplicatePost(id) {
-  const p = allPosts.find(x => x.id === id);
-  if (!p) return;
-  const posts = loadPostsFromStorage();
-  const copy = {
-    ...p,
-    id: uid(),
-    title: p.title + ' (copia)',
-    status: 'draft',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-  posts.push(copy);
-  savePostsToStorage(posts);
-  showToast('Publicación duplicada');
-  loadPosts();
-}
-
-function deletePost(id) {
-  const p = allPosts.find(x => x.id === id);
-  if (!p) return;
-  if (!confirm(`¿Eliminar "${p.title}"? Esta acción no se puede deshacer.`)) return;
-  let posts = loadPostsFromStorage().filter(x => x.id !== id);
-  savePostsToStorage(posts);
-  logActivity('deleted', id, p.title);
-  showToast('Publicación eliminada');
-  loadPosts();
-}
-
-/* ---------- ACTIVITY LOG ---------- */
-function logActivity(action, recordId, title) {
-  const log = loadLogFromStorage();
-  log.unshift({
-    id: uid(),
-    admin_email: currentUser ? currentUser.email : null,
-    action,
-    table_name: 'publicaciones',
-    record_id: recordId,
-    detail: { title },
-    created_at: new Date().toISOString(),
-  });
-  saveLogToStorage(log.slice(0, 100));
-}
-
-function loadLog() {
-  const tbody = document.getElementById('logTable');
-  const data = loadLogFromStorage();
-  if (!data.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Sin actividad todavía.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = data.map(l => `
-    <tr>
-      <td>${new Date(l.created_at).toLocaleString('es-PE')}</td>
-      <td>${l.action}</td>
-      <td>${l.table_name}</td>
-      <td>${escapeHtml(l.detail && l.detail.title ? l.detail.title : '')}</td>
-    </tr>
-  `).join('');
-}
-
-/* ---------- TOAST ---------- */
-function showToast(msg, isError) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast' + (isError ? ' error' : '');
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 3500);
-}
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+window.deletePost=function(id){if(!confirm('¿Eliminar esta publicación?'))return;savePosts(loadPosts().filter(p=>p.id!==id));renderList();showToast('Eliminada');};
+function loadAnnUI(){const a=loadAnn();document.getElementById('annEnabled').checked=!!a.enabled;document.getElementById('annText').value=a.text||'';document.getElementById('annLink').value=a.link||'';}
+document.getElementById('saveAnnBtn').addEventListener('click',()=>{saveAnn({enabled:document.getElementById('annEnabled').checked,text:document.getElementById('annText').value.trim(),link:document.getElementById('annLink').value.trim()});showToast('Barra de avisos guardada');});
+updatePreview();
 </script>
 </body>
 </html>
