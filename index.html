@@ -404,42 +404,60 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 #rnDynamicPosts .rn-post-card p{font-size:13px; color:var(--texto-secundario); line-height:1.45;}
 
 
-/* Feed estilo Facebook */
+
+/* Feed estilo Facebook (compacto) */
 #rnAnnBar{display:none; background:#B23A2E; color:#fff; font-size:13px; text-align:center; padding:8px 16px; font-weight:600;}
 #rnAnnBar a{color:#fff; text-decoration:underline;}
 #rnAnnBar.open{display:block;}
-#rnDynamicFeatured{margin:28px auto 0; max-width:680px;}
-#rnDynamicFeatured .featured-pub{display:grid; grid-template-columns:1.2fr 1fr; border:1px solid var(--borde); background:#fff; border-radius:8px; overflow:hidden; margin-bottom:16px;}
+#rnDynamicFeatured{margin:22px auto 0; max-width:560px;}
+#rnDynamicFeatured .featured-pub{display:grid; grid-template-columns:1.15fr 1fr; border:1px solid var(--borde); background:#fff; border-radius:8px; overflow:hidden; margin-bottom:12px;}
 @media (max-width:900px){#rnDynamicFeatured .featured-pub{grid-template-columns:1fr;}}
-#rnDynamicFeatured .featured-img{min-height:200px; background:var(--verde-tenue);}
-#rnDynamicFeatured .featured-img img{width:100%; height:100%; object-fit:cover; display:block; max-height:280px;}
-#rnDynamicFeatured .featured-side{padding:22px; display:flex; flex-direction:column; justify-content:center; gap:10px;}
-#rnDynamicFeatured .badge-tag{display:inline-flex; align-self:flex-start; background:var(--rojo-tenue); color:var(--rojo); font-size:11px; font-weight:700; padding:4px 10px; border-radius:3px; text-transform:uppercase;}
-#rnDynamicFeatured h3{font-size:18px; color:var(--verde-oscuro);}
-#rnDynamicFeatured p{font-size:13.5px; color:var(--texto-secundario); white-space:pre-wrap;}
-#rnDynamicFeatured .btn-feat{display:inline-block; margin-top:8px; background:var(--verde-oscuro); color:#fff; padding:10px 16px; border-radius:4px; font-size:13px; font-weight:600; text-decoration:none; width:fit-content;}
-#rnDynamicPosts{margin:28px auto 24px; max-width:680px;}
-#rnDynamicPosts .fb-feed-title{font-size:20px; color:var(--verde-oscuro); margin-bottom:14px; font-family:var(--font-display);}
+#rnDynamicFeatured .featured-img{min-height:160px; background:var(--verde-tenue);}
+#rnDynamicFeatured .featured-img img{width:100%; height:100%; object-fit:cover; display:block; max-height:220px;}
+#rnDynamicFeatured .featured-side{padding:16px; display:flex; flex-direction:column; justify-content:center; gap:8px;}
+#rnDynamicFeatured .badge-tag{display:inline-flex; align-self:flex-start; background:var(--rojo-tenue); color:var(--rojo); font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px; text-transform:uppercase;}
+#rnDynamicFeatured h3{font-size:16px; color:var(--verde-oscuro);}
+#rnDynamicFeatured p{font-size:12.5px; color:var(--texto-secundario); white-space:pre-wrap;}
+#rnDynamicFeatured .btn-feat{display:inline-block; margin-top:6px; background:var(--verde-oscuro); color:#fff; padding:7px 12px; border-radius:4px; font-size:12px; font-weight:600; text-decoration:none; width:fit-content;}
+#rnDynamicPosts{margin:22px auto 20px; max-width:520px;}
+#rnDynamicPosts .fb-feed-title{font-size:18px; color:var(--verde-oscuro); margin-bottom:12px; font-family:var(--font-display);}
 #rnDynamicPosts .fb-post{
-  background:#fff; border:1px solid var(--borde); border-radius:10px; margin-bottom:14px; overflow:hidden;
+  background:#fff; border:1px solid var(--borde); border-radius:8px; margin-bottom:12px; overflow:hidden;
   box-shadow:0 1px 2px rgba(0,0,0,.04);
 }
-#rnDynamicPosts .fb-head{display:flex; align-items:center; gap:10px; padding:12px 14px 8px;}
+#rnDynamicPosts .fb-head{display:flex; align-items:center; gap:8px; padding:10px 12px 6px;}
 #rnDynamicPosts .fb-avatar{
-  width:40px; height:40px; border-radius:50%; object-fit:cover; background:var(--verde-tenue);
+  width:32px; height:32px; border-radius:50%; object-fit:cover; background:var(--verde-tenue);
   border:1px solid var(--borde);
 }
-#rnDynamicPosts .fb-meta{flex:1; min-width:0;}
-#rnDynamicPosts .fb-meta .name{font-size:14px; font-weight:700; color:var(--verde-oscuro);}
-#rnDynamicPosts .fb-meta .time{font-size:12px; color:var(--texto-secundario);}
-#rnDynamicPosts .fb-text{padding:4px 14px 12px; font-size:14.5px; line-height:1.5; color:var(--texto); white-space:pre-wrap;}
-#rnDynamicPosts .fb-img{width:100%; display:block; max-height:520px; object-fit:cover; background:#000;}
+#rnDynamicPosts .fb-meta{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+#rnDynamicPosts .fb-meta .name-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+#rnDynamicPosts .fb-meta .name{font-size:13px; font-weight:700; color:var(--verde-oscuro);}
+#rnDynamicPosts .fb-meta .time{font-size:11px; color:var(--texto-secundario);}
+#rnDynamicPosts .cat-pill{
+  display:inline-flex; align-items:center; font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.03em; padding:3px 8px; border-radius:999px; color:#fff;
+  animation: catPulse 2.4s ease-in-out infinite;
+}
+#rnDynamicPosts .cat-pill.comunicado{--c1:#2A6B47; --c2:#7BC49A;}
+#rnDynamicPosts .cat-pill.noticia{--c1:#1B4F72; --c2:#5DADE2;}
+#rnDynamicPosts .cat-pill.obra{--c1:#B9770E; --c2:#F5B041;}
+#rnDynamicPosts .cat-pill.actividad{--c1:#6C3483; --c2:#BB8FCE;}
+#rnDynamicPosts .cat-pill.cultura{--c1:#922B21; --c2:#E74C3C;}
+#rnDynamicPosts .cat-pill.aviso{--c1:#B23A2E; --c2:#F5B7B1;}
+@keyframes catPulse{
+  0%,100%{ background: var(--c1); }
+  50%{ background: var(--c2); color: #1a1a1a; }
+}
+#rnDynamicPosts .fb-text{padding:2px 12px 8px; font-size:13px; line-height:1.45; color:var(--texto); white-space:pre-wrap;}
+#rnDynamicPosts .fb-cta{
+  display:inline-block; margin:0 12px 10px; background:var(--verde-oscuro); color:#fff;
+  padding:6px 12px; border-radius:5px; font-weight:600; font-size:12px; text-decoration:none;
+}
+#rnDynamicPosts .fb-img{width:100%; display:block; max-height:360px; object-fit:cover; background:#000;}
 #rnDynamicPosts .fb-imgs{display:grid; gap:2px;}
 #rnDynamicPosts .fb-imgs.two{grid-template-columns:1fr 1fr;}
-#rnDynamicPosts .fb-imgs.two img{height:220px; object-fit:cover; width:100%;}
-#rnDynamicPosts .fb-cta{display:block; margin:0 14px 12px; text-align:center; background:var(--verde-oscuro); color:#fff; padding:10px; border-radius:6px; font-weight:600; font-size:13px; text-decoration:none;}
-#rnDynamicPosts .fb-actions{display:flex; border-top:1px solid var(--borde); padding:4px 8px;}
-#rnDynamicPosts .fb-actions span{flex:1; text-align:center; padding:8px; font-size:13px; color:var(--texto-secundario); font-weight:600;}
+#rnDynamicPosts .fb-imgs.two img{height:160px; object-fit:cover; width:100%;}
 
 </style>
 </head>
@@ -499,6 +517,7 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
       <li><a class="top-link" href="servicios.html">Servicios</a></li>
       <li><a class="top-link" href="integridad.html">Integridad</a></li>
       <li><a class="top-link" href="serenazgo.html">Serenazgo</a></li>
+      <li><a class="top-link" href="obras.html">Obras</a></li>
       <li><a class="top-link" href="contacto.html">Contacto</a></li>
     </ul>
   </div>
@@ -681,6 +700,7 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
   </div>
 </div>
 
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
@@ -695,6 +715,11 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
     if (!iso) return '';
     try { return new Date(iso).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' }); }
     catch (e) { return ''; }
+  }
+  function catClass(c) {
+    c = (c || 'comunicado').toLowerCase();
+    if (['comunicado','noticia','obra','actividad','cultura','aviso'].indexOf(c) >= 0) return c;
+    return 'comunicado';
   }
 
   function loadAnn() {
@@ -752,19 +777,26 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
             '</div>';
         }
         var cta = p.button_text
-          ? '<a class="fb-cta" href="' + esc(p.link_url || '#') + '">' + esc(p.button_text) + '</a>'
+          ? '<a class="fb-cta" href="' + esc(p.link_url || '#') + '" target="_blank" rel="noopener">' + esc(p.button_text) + '</a>'
           : '';
         var when = fmtDate(p.published_at || p.created_at);
+        var cat = catClass(p.category);
         return '<article class="fb-post">' +
           '<div class="fb-head">' +
             '<img class="fb-avatar" src="IMG/logoMUNI.png" alt="">' +
-            '<div class="fb-meta"><div class="name">Municipalidad Distrital de Río Negro - Oficial</div>' +
-            '<div class="time">' + esc(when) + (p.category ? ' · ' + esc(p.category) : '') + '</div></div>' +
+            '<div class="fb-meta">' +
+              '<div class="name-row">' +
+                '<span class="name">Municipalidad Distrital de Río Negro - Oficial</span>' +
+                '<span class="cat-pill ' + cat + '">' + esc(p.category || 'comunicado') + '</span>' +
+              '</div>' +
+              '<div class="time">' + esc(when) + '</div>' +
+            '</div>' +
           '</div>' +
           '<div class="fb-text"><strong>' + esc(p.title) + '</strong>' +
-            (p.body ? '\n' + esc(p.body) : '') + '</div>' +
-          imgHtml + cta +
-          '<div class="fb-actions"><span>Me gusta</span><span>Comentar</span><span>Compartir</span></div>' +
+            (p.body ? '
+' + esc(p.body) : '') + '</div>' +
+          cta +
+          imgHtml +
         '</article>';
       }).join('');
       listBox.innerHTML = '<h2 class="fb-feed-title">Comunicados y noticias</h2>' + cards;
@@ -775,10 +807,7 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
     .select('*')
     .eq('status', 'published')
     .then(function (res) {
-      if (res.error) {
-        console.warn('Supabase publicaciones:', res.error.message);
-        return;
-      }
+      if (res.error) { console.warn('Supabase publicaciones:', res.error.message); return; }
       renderPosts(res.data || []);
     });
 })();
