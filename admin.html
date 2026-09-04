@@ -105,6 +105,8 @@ button,input,textarea,select{font-family:inherit}
     <aside class="sidebar">
       <a href="#" class="active" data-view="publicaciones"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Añadir publicación</a>
       <a href="#" data-view="aviso"><svg viewBox="0 0 24 24"><path d="M4 6h16v3H4zM4 12h16v6H4z"/></svg>Barra de avisos</a>
+      <a href="#" data-view="serenazgo"><svg viewBox="0 0 24 24"><path d="M12 3l7 2.5v6c0 5-3 8.2-7 9.5-4-1.3-7-4.5-7-9.5v-6z"/></svg>Serenazgo (destacado)</a>
+      <a href="#" data-view="obras"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>Obras</a>
     </aside>
     <main class="main">
       <div id="view-publicaciones">
@@ -173,6 +175,57 @@ button,input,textarea,select{font-family:inherit}
           </table>
         </div>
       </div>
+      
+      <div id="view-serenazgo" style="display:none">
+        <h2>Bloque destacado — Serenazgo</h2>
+        <div class="desc">Cuadro grande en serenazgo.html (título, texto, botón, imagen).</div>
+        <div class="card" style="max-width:560px">
+          <div class="field"><label>Etiqueta</label><input type="text" id="serBadge" placeholder="Serenazgo / Aviso"></div>
+          <div class="field"><label>Título</label><input type="text" id="serTitle"></div>
+          <div class="field"><label>Información</label><textarea id="serBody" rows="5"></textarea></div>
+          <div class="field"><label>Texto del botón</label><input type="text" id="serBtn" placeholder="Reporta aquí"></div>
+          <div class="field"><label>URL del botón</label><input type="text" id="serLink" placeholder="https://..."></div>
+          <div class="field"><label>Imagen</label>
+            <input type="file" id="serImage" accept="image/*">
+            <div id="serImgPrev" style="margin-top:8px"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="lbl">Publicado</div>
+            <label class="switch"><input type="checkbox" id="serPublish" checked><span class="slider"></span></label>
+          </div>
+          <button class="btn" id="saveSerBtn">Guardar bloque Serenazgo</button>
+        </div>
+      </div>
+      <div id="view-obras" style="display:none">
+        <h2>Obras de Río Negro</h2>
+        <div class="desc">Aparecen en obras.html. Puedes pegar el enlace de Todolicitaciones / SEACE a mano (la importación masiva automática no es fiable).</div>
+        <div class="card" style="max-width:560px">
+          <input type="hidden" id="obraEditId">
+          <div class="field"><label>Título</label><input type="text" id="obraTitle" placeholder="Renovación del puente..."></div>
+          <div class="field"><label>Descripción</label><textarea id="obraBody" rows="4"></textarea></div>
+          <div class="field"><label>Etiqueta</label><input type="text" id="obraTag" placeholder="Obra / Primera piedra" value="Obra"></div>
+          <div class="field"><label>Inversión</label><input type="text" id="obraAmount" placeholder="S/ 1'981,514.28"></div>
+          <div class="field"><label>Ubicación</label><input type="text" id="obraLoc" placeholder="C.N. San Juan de Cheni"></div>
+          <div class="field"><label>Texto del botón</label><input type="text" id="obraBtn" placeholder="Ver detalle"></div>
+          <div class="field"><label>URL (SEACE / Todolicitaciones)</label><input type="text" id="obraLink" placeholder="https://www.todolicitaciones.pe/licitacion/..."></div>
+          <div class="field"><label>Imagen</label><input type="file" id="obraImage" accept="image/*"><div id="obraImgPrev" style="margin-top:8px"></div></div>
+          <div class="toggle-row">
+            <div class="lbl">Publicado</div>
+            <label class="switch"><input type="checkbox" id="obraPublish" checked><span class="slider"></span></label>
+          </div>
+          <div class="actions-bar">
+            <button class="btn btn-outline" id="obraResetBtn">Limpiar</button>
+            <button class="btn" id="saveObraBtn">Guardar obra</button>
+          </div>
+        </div>
+        <div class="list-simple" style="margin-top:14px">
+          <table>
+            <thead><tr><th>Título</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="obrasTable"><tr><td colspan="3" style="text-align:center;padding:14px;color:#5A6459">—</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
       <div id="view-aviso" style="display:none">
         <h2>Barra de avisos</h2>
         <div class="desc">Por ahora se guarda en este navegador. Las publicaciones ya van a Supabase.</div>
@@ -262,6 +315,10 @@ document.querySelectorAll('.sidebar a').forEach(a => {
     const v = a.dataset.view;
     document.getElementById('view-publicaciones').style.display = v === 'publicaciones' ? 'block' : 'none';
     document.getElementById('view-aviso').style.display = v === 'aviso' ? 'block' : 'none';
+    const vs = document.getElementById('view-serenazgo'); if (vs) vs.style.display = v === 'serenazgo' ? 'block' : 'none';
+    const vo = document.getElementById('view-obras'); if (vo) vo.style.display = v === 'obras' ? 'block' : 'none';
+    if (v === 'obras') loadObras();
+    if (v === 'serenazgo') loadSer();
   });
 });
 
@@ -436,6 +493,133 @@ document.getElementById('saveAnnBtn').addEventListener('click', () => {
   }));
   showToast('Barra guardada (local)');
 });
+
+
+let serImageUrl = '';
+let obraImageUrl = '';
+
+document.getElementById('serImage')?.addEventListener('change', async (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const path = 'ser_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9.]/g,'_');
+  const { error } = await sb.storage.from('publicaciones').upload(path, file, { contentType: file.type });
+  if (error) { showToast(error.message, true); return; }
+  serImageUrl = sb.storage.from('publicaciones').getPublicUrl(path).data.publicUrl;
+  document.getElementById('serImgPrev').innerHTML = '<img src="'+serImageUrl+'" style="max-width:160px;border-radius:6px">';
+});
+
+async function loadSer() {
+  const { data } = await sb.from('serenazgo_bloque').select('*').order('updated_at', { ascending: false }).limit(1);
+  const p = data && data[0];
+  if (!p) return;
+  document.getElementById('serBadge').value = p.badge || '';
+  document.getElementById('serTitle').value = p.title || '';
+  document.getElementById('serBody').value = p.body || '';
+  document.getElementById('serBtn').value = p.button_text || '';
+  document.getElementById('serLink').value = p.link_url || '';
+  document.getElementById('serPublish').checked = p.status === 'published';
+  serImageUrl = p.image_url || '';
+  document.getElementById('serImgPrev').innerHTML = serImageUrl ? '<img src="'+serImageUrl+'" style="max-width:160px;border-radius:6px">' : '';
+}
+
+document.getElementById('saveSerBtn')?.addEventListener('click', async () => {
+  const payload = {
+    badge: document.getElementById('serBadge').value.trim() || 'Serenazgo',
+    title: document.getElementById('serTitle').value.trim(),
+    body: document.getElementById('serBody').value.trim(),
+    button_text: document.getElementById('serBtn').value.trim() || null,
+    link_url: document.getElementById('serLink').value.trim() || null,
+    image_url: serImageUrl || null,
+    status: document.getElementById('serPublish').checked ? 'published' : 'draft',
+    updated_at: new Date().toISOString()
+  };
+  if (!payload.title) { showToast('Título obligatorio', true); return; }
+  const { data: existing } = await sb.from('serenazgo_bloque').select('id').limit(1);
+  let error;
+  if (existing && existing[0]) {
+    ({ error } = await sb.from('serenazgo_bloque').update(payload).eq('id', existing[0].id));
+  } else {
+    ({ error } = await sb.from('serenazgo_bloque').insert(payload));
+  }
+  if (error) showToast(error.message, true); else showToast('Bloque Serenazgo guardado');
+});
+
+document.getElementById('obraImage')?.addEventListener('change', async (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const path = 'obra_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9.]/g,'_');
+  const { error } = await sb.storage.from('publicaciones').upload(path, file, { contentType: file.type });
+  if (error) { showToast(error.message, true); return; }
+  obraImageUrl = sb.storage.from('publicaciones').getPublicUrl(path).data.publicUrl;
+  document.getElementById('obraImgPrev').innerHTML = '<img src="'+obraImageUrl+'" style="max-width:160px;border-radius:6px">';
+});
+
+function obraReset() {
+  document.getElementById('obraEditId').value = '';
+  ['obraTitle','obraBody','obraAmount','obraLoc','obraLink'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('obraTag').value = 'Obra';
+  document.getElementById('obraBtn').value = 'Ver detalle';
+  document.getElementById('obraPublish').checked = true;
+  obraImageUrl = '';
+  document.getElementById('obraImgPrev').innerHTML = '';
+}
+document.getElementById('obraResetBtn')?.addEventListener('click', obraReset);
+
+document.getElementById('saveObraBtn')?.addEventListener('click', async () => {
+  const title = document.getElementById('obraTitle').value.trim();
+  if (!title) { showToast('Título obligatorio', true); return; }
+  const id = document.getElementById('obraEditId').value;
+  const payload = {
+    title,
+    body: document.getElementById('obraBody').value.trim(),
+    tag: document.getElementById('obraTag').value.trim() || 'Obra',
+    amount: document.getElementById('obraAmount').value.trim() || null,
+    location: document.getElementById('obraLoc').value.trim() || null,
+    button_text: document.getElementById('obraBtn').value.trim() || 'Ver detalle',
+    link_url: document.getElementById('obraLink').value.trim() || null,
+    image_url: obraImageUrl || null,
+    status: document.getElementById('obraPublish').checked ? 'published' : 'draft',
+    updated_at: new Date().toISOString()
+  };
+  let error;
+  if (id) ({ error } = await sb.from('obras').update(payload).eq('id', id));
+  else ({ error } = await sb.from('obras').insert(payload));
+  if (error) showToast(error.message, true);
+  else { showToast('Obra guardada'); obraReset(); loadObras(); }
+});
+
+async function loadObras() {
+  const { data, error } = await sb.from('obras').select('*').order('sort_order').order('created_at', { ascending: false });
+  const tbody = document.getElementById('obrasTable');
+  if (!tbody) return;
+  if (error) { tbody.innerHTML = '<tr><td colspan="3" style="color:#B23A2E;padding:12px">'+escapeHtml(error.message)+'</td></tr>'; return; }
+  if (!data || !data.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:14px;color:#5A6459">Ninguna obra</td></tr>'; return; }
+  tbody.innerHTML = data.map(o => `<tr>
+    <td>${escapeHtml(o.title)}</td>
+    <td>${o.status==='published'?'Publicado':'Borrador'}</td>
+    <td><div class="row-actions">
+      <button class="chip-btn btn-sm" onclick="editObra('${o.id}')">Editar</button>
+      <button class="chip-btn btn-sm" onclick="deleteObra('${o.id}')">Eliminar</button>
+    </div></td></tr>`).join('');
+  window._obras = data;
+}
+window.editObra = function(id) {
+  const o = (window._obras||[]).find(x => x.id === id); if (!o) return;
+  document.getElementById('obraEditId').value = o.id;
+  document.getElementById('obraTitle').value = o.title || '';
+  document.getElementById('obraBody').value = o.body || '';
+  document.getElementById('obraTag').value = o.tag || 'Obra';
+  document.getElementById('obraAmount').value = o.amount || '';
+  document.getElementById('obraLoc').value = o.location || '';
+  document.getElementById('obraBtn').value = o.button_text || 'Ver detalle';
+  document.getElementById('obraLink').value = o.link_url || '';
+  document.getElementById('obraPublish').checked = o.status === 'published';
+  obraImageUrl = o.image_url || '';
+  document.getElementById('obraImgPrev').innerHTML = obraImageUrl ? '<img src="'+obraImageUrl+'" style="max-width:160px;border-radius:6px">' : '';
+};
+window.deleteObra = async function(id) {
+  if (!confirm('¿Eliminar obra?')) return;
+  const { error } = await sb.from('obras').delete().eq('id', id);
+  if (error) showToast(error.message, true); else { showToast('Eliminada'); loadObras(); }
+};
 
 updatePreview();
 </script>
