@@ -12,11 +12,12 @@
   --rojo:#B23A2E; --borde:#DCE3DD; --texto:#1D2620; --texto-secundario:#5A6459;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
-body{font-family:'Inter',sans-serif; background:#F4F6F4; color:var(--texto); font-size:14px;}
+html{font-size:13px;}
+body{font-family:'Inter',sans-serif; background:#F4F6F4; color:var(--texto); font-size:13px;}
 button,input,textarea,select{font-family:inherit;}
 #loginScreen{min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,rgba(20,49,31,.92),rgba(20,49,31,.85)); position:relative;}
 #loginScreen::before{content:''; position:absolute; inset:0; backdrop-filter:blur(14px); background:rgba(10,26,17,.35);}
-.login-box{position:relative; z-index:1; background:rgba(255,255,255,.97); padding:42px 38px; border-radius:14px; width:360px; max-width:92vw; box-shadow:0 24px 60px rgba(0,0,0,.35);}
+.login-box{position:relative; z-index:1; background:rgba(255,255,255,.97); padding:32px 28px; border-radius:12px; width:320px; max-width:92vw; box-shadow:0 24px 60px rgba(0,0,0,.35);}
 .login-box h1{font-size:18px; color:var(--verde-oscuro); margin-bottom:6px;}
 .login-box .sub{font-size:12.5px; color:var(--texto-secundario); margin-bottom:26px; line-height:1.45;}
 .field{margin-bottom:14px;}
@@ -29,20 +30,20 @@ button,input,textarea,select{font-family:inherit;}
 .btn-outline:hover{background:var(--verde-tenue);}
 #loginError{color:var(--rojo); font-size:12.5px; margin-top:10px; display:none;}
 #adminShell{display:none; min-height:100vh;}
-.topbar{background:var(--verde-oscuro); color:#fff; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 22px;}
+.topbar{background:var(--verde-oscuro); color:#fff; height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 22px;}
 .topbar .brand{font-weight:700; font-size:14px;}
 .topbar .who{font-size:12.5px; color:#cfe2d6; display:flex; align-items:center; gap:12px;}
 .layout{display:flex; min-height:calc(100vh - 56px);}
-.sidebar{width:220px; background:#fff; border-right:1px solid var(--borde); padding:18px 12px; display:flex; flex-direction:column; gap:4px;}
+.sidebar{width:190px; background:#fff; border-right:1px solid var(--borde); padding:12px 8px; display:flex; flex-direction:column; gap:4px;}
 .sidebar a{display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:8px; font-size:13.5px; font-weight:500; color:var(--texto-secundario); text-decoration:none;}
 .sidebar a svg{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.7; flex-shrink:0;}
 .sidebar a.active,.sidebar a:hover{background:var(--verde-tenue); color:var(--verde-oscuro);}
-.main{flex:1; padding:26px 28px; overflow-y:auto;}
-.main h2{font-size:19px; color:var(--verde-oscuro); margin-bottom:4px;}
+.main{flex:1; padding:18px 20px; overflow-y:auto;}
+.main h2{font-size:16px; color:var(--verde-oscuro); margin-bottom:4px;}
 .main .desc{font-size:13px; color:var(--texto-secundario); margin-bottom:20px;}
 .composer{display:grid; grid-template-columns:1.15fr .85fr; gap:20px; align-items:start;}
 @media (max-width:960px){.composer{grid-template-columns:1fr;}}
-.card{background:#fff; border:1px solid var(--borde); border-radius:12px; padding:18px; margin-bottom:14px;}
+.card{background:#fff; border:1px solid var(--borde); border-radius:10px; padding:14px; margin-bottom:10px;}
 .card h3{font-size:13px; font-weight:600; color:var(--verde-oscuro); margin-bottom:10px;}
 .card .hint{font-size:12px; color:var(--texto-secundario); margin-bottom:12px; line-height:1.4;}
 .chip-btn{border:1px solid var(--borde); background:#fff; border-radius:8px; padding:8px 12px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--texto);}
@@ -92,7 +93,8 @@ button,input,textarea,select{font-family:inherit;}
   <div class="topbar">
     <div class="brand">Río Negro · Panel administrativo</div>
     <div class="who"><span>Administrador</span>
-      <button class="btn btn-outline" style="width:auto;padding:7px 14px;color:#14311F;" id="logoutBtn">Cerrar sesión</button>
+      <a class="btn btn-outline" href="index.html" id="backSiteBtn" style="width:auto;padding:6px 12px;color:#14311F;text-decoration:none;display:inline-flex;align-items:center;">Volver al sitio</a>
+      <button class="btn btn-outline" style="width:auto;padding:6px 12px;color:#14311F;" id="logoutBtn">Cerrar sesión</button>
     </div>
   </div>
   <div class="layout">
