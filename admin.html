@@ -6,7 +6,7 @@
 <title>Administrador | Municipalidad Distrital de Río Negro</title>
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root{
   --verde-oscuro:#14311F; --verde-medio:#2A6B47; --verde-tenue:#EEF3EE;
@@ -18,10 +18,27 @@ body{font-family:'Inter',sans-serif; background:#F4F6F4; color:var(--texto); fon
 a{color:inherit; text-decoration:none;}
 
 /* ---- Login gate ---- */
-#loginScreen{min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--verde-oscuro);}
-.login-box{background:#fff; padding:40px 36px; border-radius:8px; width:340px; box-shadow:0 20px 50px rgba(0,0,0,.3);}
-.login-box h1{font-size:17px; color:var(--verde-oscuro); margin-bottom:4px;}
-.login-box .sub{font-size:12.5px; color:var(--texto-secundario); margin-bottom:22px;}
+#loginScreen{
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg, rgba(20,49,31,.92), rgba(20,49,31,.85)),
+              url('IMG/fondo.png') center/cover no-repeat;
+  background-color: var(--verde-oscuro);
+  position: relative;
+}
+#loginScreen::before{
+  content:''; position:absolute; inset:0;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: rgba(10,26,17,.35);
+}
+.login-box{
+  position:relative; z-index:1;
+  background:rgba(255,255,255,.96);
+  padding:42px 38px; border-radius:14px; width:360px; max-width:92vw;
+  box-shadow:0 24px 60px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08);
+  backdrop-filter: blur(8px);
+}
+.login-box h1{font-size:18px; color:var(--verde-oscuro); margin-bottom:6px; letter-spacing:-.01em;}
+.login-box .sub{font-size:12.5px; color:var(--texto-secundario); margin-bottom:26px; line-height:1.45;}
 .field{margin-bottom:14px;}
 .field label{display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; color:var(--texto);}
 .field input{width:100%; border:1px solid var(--borde); border-radius:5px; padding:10px 12px; font-size:13.5px; font-family:inherit;}
@@ -95,14 +112,10 @@ tr:last-child td{border-bottom:none;}
 <!-- ================= LOGIN ================= -->
 <div id="loginScreen">
   <div class="login-box">
-    <h1>Panel administrativo</h1>
-    <div class="sub">Municipalidad Distrital de Río Negro</div>
+    <h1>Acceso administrador</h1>
+    <div class="sub">Municipalidad Distrital de Río Negro<br>Ingrese la clave para continuar al panel de gestión.</div>
     <div class="field">
-      <label>Correo</label>
-      <input type="email" id="loginEmail" placeholder="admin@munirionegro.gob.pe" autocomplete="username">
-    </div>
-    <div class="field">
-      <label>Contraseña</label>
+      <label>Contraseña de administrador</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
     <button class="btn" id="loginBtn">Ingresar</button>
@@ -168,7 +181,7 @@ tr:last-child td{border-bottom:none;}
       <!-- ---- Help view ---- -->
       <div id="view-ayuda" style="display:none;">
         <h2>Ayuda</h2>
-        <div class="desc">Este panel está conectado a Supabase. Las nuevas secciones (banners, galerías, documentos, eventos, estadísticas) se agregan una por una siguiendo este mismo patrón: una tabla en Supabase + una vista aquí + una lectura pública en el sitio.</div>
+        <div class="desc">Modo local activo: el login y las publicaciones se guardan en este navegador (localStorage). Cuando conectes Supabase, los datos podrán migrarse a la base de datos en la nube.</div>
       </div>
 
     </main>
@@ -243,47 +256,87 @@ tr:last-child td{border-bottom:none;}
 
 <script>
 /* =====================================================================
-   CONFIGURA ESTO PRIMERO: pega la URL y la anon key de tu proyecto
-   Supabase → Project Settings → API
+   MODO LOCAL (sin Supabase)
+   Cambia el correo y la contraseña aquí abajo.
+   Cuando tengas Supabase, se puede volver a conectar fácilmente.
    ===================================================================== */
-const SUPABASE_URL = 'https://xxxx.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJ... o sb_publishable_...';
+/* Hash SHA-256 de la contraseña (la contraseña en texto plano NO está en el código) */
+const ADMIN_PASS_HASH = '7f46db11702dfd10a845626bcece60a03f8728180b3e82e12cefef7beeb64f86';
+const LOCAL_EMAIL = 'Administrador';
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const STORAGE_POSTS = 'rn_publicaciones';
+const STORAGE_LOG = 'rn_activity_log';
+
 let currentUser = null;
 let uploadedUrls = [];
+let allPosts = [];
+let activeCat = 'todos';
+
+async function sha256(message) {
+  const data = new TextEncoder().encode(message);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function uid() {
+  return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+}
+
+function loadPostsFromStorage() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_POSTS) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function savePostsToStorage(posts) {
+  localStorage.setItem(STORAGE_POSTS, JSON.stringify(posts));
+}
+
+function loadLogFromStorage() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_LOG) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveLogToStorage(log) {
+  localStorage.setItem(STORAGE_LOG, JSON.stringify(log));
+}
 
 /* ---------- LOGIN ---------- */
 document.getElementById('loginBtn').addEventListener('click', async () => {
-  const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   const errBox = document.getElementById('loginError');
   errBox.style.display = 'none';
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) {
-    errBox.textContent = 'Correo o contraseña incorrectos.';
+
+  const hash = await sha256(password);
+  if (hash === ADMIN_PASS_HASH) {
+    currentUser = { email: LOCAL_EMAIL };
+    sessionStorage.setItem('rn_admin_session', '1');
+    enterAdmin();
+  } else {
+    errBox.textContent = 'Acceso denegado.';
     errBox.style.display = 'block';
-    return;
   }
-  currentUser = data.user;
-  enterAdmin();
 });
 
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  await sb.auth.signOut();
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('rn_admin_session');
   location.reload();
 });
 
-async function checkSession(){
-  const { data } = await sb.auth.getSession();
-  if (data.session) {
-    currentUser = data.session.user;
+function checkSession() {
+  if (sessionStorage.getItem('rn_admin_session') === '1') {
+    currentUser = { email: LOCAL_EMAIL };
     enterAdmin();
   }
 }
 checkSession();
 
-function enterAdmin(){
+function enterAdmin() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminShell').style.display = 'block';
   document.getElementById('whoEmail').textContent = currentUser.email;
@@ -297,7 +350,7 @@ document.querySelectorAll('.sidebar a').forEach(a => {
     document.querySelectorAll('.sidebar a').forEach(x => x.classList.remove('active'));
     a.classList.add('active');
     const view = a.dataset.view;
-    ['publicaciones','log','ayuda'].forEach(v => {
+    ['publicaciones', 'log', 'ayuda'].forEach(v => {
       document.getElementById('view-' + v).style.display = (v === view) ? 'block' : 'none';
     });
     if (view === 'log') loadLog();
@@ -305,22 +358,19 @@ document.querySelectorAll('.sidebar a').forEach(a => {
 });
 
 /* ---------- LOAD POSTS ---------- */
-let allPosts = [];
-let activeCat = 'todos';
-
-async function loadPosts(){
-  const { data, error } = await sb.from('publicaciones').select('*').order('updated_at', { ascending: false });
-  if (error) { showToast('Error cargando publicaciones: ' + error.message, true); return; }
-  allPosts = data || [];
+function loadPosts() {
+  allPosts = loadPostsFromStorage().sort(
+    (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
+  );
   renderPosts();
 }
 
-function renderPosts(){
+function renderPosts() {
   const tbody = document.getElementById('postsTable');
   const search = document.getElementById('searchBox').value.toLowerCase();
   const filtered = allPosts.filter(p =>
     (activeCat === 'todos' || p.category === activeCat) &&
-    (!search || p.title.toLowerCase().includes(search))
+    (!search || (p.title || '').toLowerCase().includes(search))
   );
   if (!filtered.length) {
     tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No hay publicaciones todavía. Crea la primera con "+ Nueva publicación".</td></tr>';
@@ -342,8 +392,16 @@ function renderPosts(){
     </tr>
   `).join('');
 }
-function statusLabel(s){ return {draft:'Borrador', published:'Publicado', archived:'Archivado'}[s] || s; }
-function escapeHtml(s){ const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+function statusLabel(s) {
+  return { draft: 'Borrador', published: 'Publicado', archived: 'Archivado' }[s] || s;
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
 
 document.getElementById('catFilters').addEventListener('click', e => {
   if (!e.target.classList.contains('filter-chip')) return;
@@ -358,7 +416,7 @@ document.getElementById('searchBox').addEventListener('input', renderPosts);
 document.getElementById('newPostBtn').addEventListener('click', () => openEditor(null));
 document.getElementById('cancelEditBtn').addEventListener('click', closeEditor);
 
-function openEditor(id){
+function openEditor(id) {
   uploadedUrls = [];
   document.getElementById('editId').value = id || '';
   document.getElementById('imgPreviewList').innerHTML = '';
@@ -377,31 +435,50 @@ function openEditor(id){
     renderImgPreviews();
   } else {
     document.getElementById('editorTitle').textContent = 'Nueva publicación';
-    ['fTitle','fSubtitle','fBody','fButtonText','fLinkUrl','fTags'].forEach(id2 => document.getElementById(id2).value = '');
+    ['fTitle', 'fSubtitle', 'fBody', 'fButtonText', 'fLinkUrl', 'fTags'].forEach(id2 => {
+      document.getElementById(id2).value = '';
+    });
     document.getElementById('fCategory').value = 'noticia';
     document.getElementById('fStatus').value = 'draft';
   }
   document.getElementById('editorOverlay').style.display = 'flex';
 }
-function closeEditor(){ document.getElementById('editorOverlay').style.display = 'none'; }
 
-function renderImgPreviews(){
-  document.getElementById('imgPreviewList').innerHTML = uploadedUrls.map(u => `<img src="${u}">`).join('');
+function closeEditor() {
+  document.getElementById('editorOverlay').style.display = 'none';
+}
+
+function renderImgPreviews() {
+  document.getElementById('imgPreviewList').innerHTML = uploadedUrls
+    .map(u => `<img src="${u}">`)
+    .join('');
 }
 
 document.getElementById('fImages').addEventListener('change', async (e) => {
   const files = Array.from(e.target.files);
   for (const file of files) {
-    const path = `${Date.now()}_${file.name}`;
-    const { error } = await sb.storage.from('publicaciones').upload(path, file);
-    if (error) { showToast('Error subiendo imagen: ' + error.message, true); continue; }
-    const { data: pub } = sb.storage.from('publicaciones').getPublicUrl(path);
-    uploadedUrls.push(pub.publicUrl);
+    if (!file.type.startsWith('image/')) continue;
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Imagen muy grande (máx 2 MB): ' + file.name, true);
+      continue;
+    }
+    const dataUrl = await readFileAsDataURL(file);
+    uploadedUrls.push(dataUrl);
   }
   renderImgPreviews();
+  e.target.value = '';
 });
 
-async function savePost(statusOverride){
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function savePost(statusOverride) {
   const id = document.getElementById('editId').value;
   const payload = {
     title: document.getElementById('fTitle').value.trim(),
@@ -415,57 +492,87 @@ async function savePost(statusOverride){
     images: uploadedUrls,
     updated_at: new Date().toISOString(),
   };
-  if (!payload.title) { showToast('El título es obligatorio', true); return; }
-
-  let result;
-  if (id) {
-    result = await sb.from('publicaciones').update(payload).eq('id', id);
-    await logActivity('updated', id, payload.title);
-  } else {
-    result = await sb.from('publicaciones').insert(payload);
-    await logActivity('created', null, payload.title);
+  if (!payload.title) {
+    showToast('El título es obligatorio', true);
+    return;
   }
-  if (result.error) { showToast('Error guardando: ' + result.error.message, true); return; }
+
+  let posts = loadPostsFromStorage();
+  if (id) {
+    const idx = posts.findIndex(p => p.id === id);
+    if (idx >= 0) {
+      posts[idx] = { ...posts[idx], ...payload };
+    }
+    logActivity('updated', id, payload.title);
+  } else {
+    const newPost = {
+      id: uid(),
+      created_at: new Date().toISOString(),
+      ...payload,
+    };
+    posts.push(newPost);
+    logActivity('created', newPost.id, payload.title);
+  }
+  savePostsToStorage(posts);
   showToast('Guardado correctamente');
   closeEditor();
   loadPosts();
 }
+
 document.getElementById('saveDraftBtn').addEventListener('click', () => savePost('draft'));
 document.getElementById('publishBtn').addEventListener('click', () => savePost('published'));
 
-async function duplicatePost(id){
+function duplicatePost(id) {
   const p = allPosts.find(x => x.id === id);
-  const copy = { ...p, title: p.title + ' (copia)', status: 'draft' };
-  delete copy.id; delete copy.created_at; delete copy.updated_at;
-  const { error } = await sb.from('publicaciones').insert(copy);
-  if (error) { showToast('Error: ' + error.message, true); return; }
+  if (!p) return;
+  const posts = loadPostsFromStorage();
+  const copy = {
+    ...p,
+    id: uid(),
+    title: p.title + ' (copia)',
+    status: 'draft',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  posts.push(copy);
+  savePostsToStorage(posts);
   showToast('Publicación duplicada');
   loadPosts();
 }
 
-async function deletePost(id){
+function deletePost(id) {
   const p = allPosts.find(x => x.id === id);
+  if (!p) return;
   if (!confirm(`¿Eliminar "${p.title}"? Esta acción no se puede deshacer.`)) return;
-  const { error } = await sb.from('publicaciones').delete().eq('id', id);
-  if (error) { showToast('Error: ' + error.message, true); return; }
-  await logActivity('deleted', id, p.title);
+  let posts = loadPostsFromStorage().filter(x => x.id !== id);
+  savePostsToStorage(posts);
+  logActivity('deleted', id, p.title);
   showToast('Publicación eliminada');
   loadPosts();
 }
 
 /* ---------- ACTIVITY LOG ---------- */
-async function logActivity(action, recordId, title){
-  await sb.from('activity_log').insert({
+function logActivity(action, recordId, title) {
+  const log = loadLogFromStorage();
+  log.unshift({
+    id: uid(),
     admin_email: currentUser ? currentUser.email : null,
-    action, table_name: 'publicaciones', record_id: recordId,
-    detail: { title }
+    action,
+    table_name: 'publicaciones',
+    record_id: recordId,
+    detail: { title },
+    created_at: new Date().toISOString(),
   });
+  saveLogToStorage(log.slice(0, 100));
 }
-async function loadLog(){
+
+function loadLog() {
   const tbody = document.getElementById('logTable');
-  const { data, error } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(50);
-  if (error) { tbody.innerHTML = `<tr class="empty-row"><td colspan="4">${error.message}</td></tr>`; return; }
-  if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Sin actividad todavía.</td></tr>'; return; }
+  const data = loadLogFromStorage();
+  if (!data.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Sin actividad todavía.</td></tr>';
+    return;
+  }
   tbody.innerHTML = data.map(l => `
     <tr>
       <td>${new Date(l.created_at).toLocaleString('es-PE')}</td>
@@ -477,12 +584,12 @@ async function loadLog(){
 }
 
 /* ---------- TOAST ---------- */
-function showToast(msg, isError){
+function showToast(msg, isError) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast' + (isError ? ' error' : '');
   t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3500);
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
 }
 </script>
 </body>
