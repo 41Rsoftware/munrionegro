@@ -244,9 +244,9 @@ button,input,textarea,select{font-family:inherit}
         <div class="card">
           <h3>Carga masiva</h3>
           <div class="hint">
-            1) En Excel o en el MEF, copia columnas (código, SNIP, nombre, costo, PIM, devengado, avance %).<br>
-            2) Pégalas abajo (una fila por línea, columnas separadas por tabulador o por | ).<br>
-            3) Revisa la vista previa y pulsa <strong>Publicar lote</strong>. Los nuevos quedan arriba; luego puedes subir/bajar cada uno.
+            Copia desde el MEF, Excel o una tabla con <code>|</code>. El sistema <strong>ignora</strong> líneas de solo <code>---</code> y limpia los <code>|</code>.<br>
+            Orden de columnas: <strong>Cód. único · SNIP · Proyecto · Costo · PIM · Devengado · Avance % · Dev. acumulado</strong><br>
+            Luego: <strong>Vista previa</strong> (tabla tipo Excel) → corrige si hace falta → <strong>Publicar lote</strong>.
           </div>
           <div class="field">
             <label>Año</label>
@@ -266,21 +266,25 @@ button,input,textarea,select{font-family:inherit}
 
         <div class="card" style="overflow-x:auto">
           <h3>Vista previa / edición del lote</h3>
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <div style="overflow-x:auto;border:1px solid #c5d0c5;border-radius:6px">
+          <table id="proyExcelTable" style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px">
             <thead>
-              <tr style="background:var(--verde-tenue)">
-                <th style="padding:6px">Cód. único</th>
-                <th style="padding:6px">SNIP</th>
-                <th style="padding:6px">Proyecto</th>
-                <th style="padding:6px">Costo</th>
-                <th style="padding:6px">PIM</th>
-                <th style="padding:6px">Devengado</th>
-                <th style="padding:6px">Avance %</th>
-                <th style="padding:6px"></th>
+              <tr style="background:#dce8dc">
+                <th style="padding:8px 6px;border:1px solid #c5d0c5;position:sticky;top:0">#</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5">Cód. único</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5">SNIP</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5">Proyecto</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5">Costo</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5">PIM</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5">Devengado</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5">Avance %</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5">Dev. acum.</th>
+                <th style="padding:8px 6px;border:1px solid #c5d0c5"></th>
               </tr>
             </thead>
             <tbody id="proyPreviewBody"></tbody>
           </table>
+          </div>
         </div>
 
         <div class="list-simple" style="margin-top:14px">
@@ -729,6 +733,205 @@ window.deleteObra = async function(id) {
   const { error } = await sb.from('obras').delete().eq('id', id);
   if (error) showToast(error.message, true); else { showToast('Eliminada'); loadObras(); }
 };
+
+
+/* —— Proyectos MEF: pegado inteligente + tabla tipo Excel —— */
+let proyBatch = [];
+let proyCache = [];
+
+function parseNum(x) {
+  if (x == null || x === '') return null;
+  var n = String(x).replace(/,/g, '').replace(/\s/g, '').replace(/%/g, '');
+  if (!n || n === '-' || n === '—') return null;
+  var v = parseFloat(n);
+  return isNaN(v) ? null : v;
+}
+function isSeparatorRow(cells) {
+  if (!cells.length) return true;
+  return cells.every(function (c) {
+    var t = String(c || '').trim();
+    return !t || /^[\s\-:|]+$/.test(t);
+  });
+}
+function isHeaderRow(cells) {
+  var joined = cells.join(' ').toLowerCase();
+  return /c[oó]digo|proyecto|snip|pim|devengado|avance|costo/.test(joined) &&
+    !/^\d{5,}/.test(String(cells[0] || '').trim());
+}
+function splitProyRow(line) {
+  line = String(line || '').replace(/\r/g, '').trim();
+  if (!line) return null;
+  if (line.indexOf('|') >= 0) {
+    if (/^[\s|:\-]+$/.test(line)) return null;
+    var cells = line.split('|').map(function (s) { return s.trim(); });
+    if (cells.length && cells[0] === '') cells.shift();
+    if (cells.length && cells[cells.length - 1] === '') cells.pop();
+    return cells;
+  }
+  if (line.indexOf('\t') >= 0) return line.split('\t').map(function (s) { return s.trim(); });
+  if (/\s{2,}/.test(line)) return line.split(/\s{2,}/).map(function (s) { return s.trim(); });
+  return [line.trim()];
+}
+function cellsToProy(parts) {
+  if (!parts || !parts.length) return null;
+  if (isSeparatorRow(parts) || isHeaderRow(parts)) return null;
+  var cod = parts[0] || '', snip = parts[1] || '', title = parts[2] || '';
+  var costo = parts[3] || '', pim = parts[4] || '', dev = parts[5] || '';
+  var av = parts[6] || '', acum = parts[7] || '';
+  if (parts.length === 6 && !/^\d*$/.test(String(parts[1] || ''))) {
+    snip = ''; title = parts[1]; costo = parts[2]; pim = parts[3]; dev = parts[4]; av = parts[5]; acum = '';
+  }
+  if (!title && cod) { title = cod; cod = ''; }
+  if (!title) return null;
+  return {
+    codigo_unico: cod || null,
+    codigo_snip: snip || null,
+    titulo: title,
+    costo: parseNum(costo),
+    pim: parseNum(pim),
+    devengado: parseNum(dev),
+    avance_pct: parseNum(av),
+    devengado_acumulado: parseNum(acum),
+    anio: parseInt((document.getElementById('proyAnio') || {}).value, 10) || 2026
+  };
+}
+function parseProyPaste(text) {
+  var rows = [];
+  String(text || '').split(/\r?\n/).forEach(function (line) {
+    var cells = splitProyRow(line);
+    if (!cells) return;
+    var row = cellsToProy(cells);
+    if (row) rows.push(row);
+  });
+  return rows;
+}
+function renderProyPreview() {
+  var tbody = document.getElementById('proyPreviewBody');
+  if (!tbody) return;
+  if (!proyBatch.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="padding:14px;color:#5A6459;text-align:center;border:1px solid #c5d0c5">Pega filas (MEF, Excel o tabla con |) y pulsa Vista previa</td></tr>';
+    return;
+  }
+  tbody.innerHTML = proyBatch.map(function (r, i) {
+    function cell(k, w) {
+      var val = r[k];
+      if (val == null) val = '';
+      return '<td style="padding:0;border:1px solid #c5d0c5"><input data-i="'+i+'" data-k="'+k+'" value="'+escapeHtml(String(val))+'" style="width:'+(w||'100%')+';border:none;padding:6px 5px;font-size:12px;background:'+(i%2?'#f7faf7':'#fff')+';outline:none"></td>';
+    }
+    return '<tr>' +
+      '<td style="padding:6px;border:1px solid #c5d0c5;text-align:center;color:#5A6459;background:#eef3ee">'+(i+1)+'</td>' +
+      cell('codigo_unico', '88px') + cell('codigo_snip', '78px') + cell('titulo', '100%') +
+      cell('costo', '90px') + cell('pim', '90px') + cell('devengado', '90px') +
+      cell('avance_pct', '70px') + cell('devengado_acumulado', '100px') +
+      '<td style="padding:4px;border:1px solid #c5d0c5;text-align:center"><button type="button" class="chip-btn btn-sm" data-del="'+i+'">×</button></td></tr>';
+  }).join('');
+  tbody.querySelectorAll('input').forEach(function (inp) {
+    inp.addEventListener('change', function () {
+      var i = +inp.getAttribute('data-i');
+      var k = inp.getAttribute('data-k');
+      if (!proyBatch[i]) return;
+      if (['costo','pim','devengado','avance_pct','devengado_acumulado'].indexOf(k) >= 0)
+        proyBatch[i][k] = parseNum(inp.value);
+      else
+        proyBatch[i][k] = inp.value.trim() || null;
+    });
+  });
+  tbody.querySelectorAll('[data-del]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      proyBatch.splice(+btn.getAttribute('data-del'), 1);
+      renderProyPreview();
+    });
+  });
+}
+function runProyPreviewFromPaste() {
+  var text = (document.getElementById('proyPaste') || {}).value || '';
+  var rows = parseProyPaste(text);
+  proyBatch = rows;
+  renderProyPreview();
+  showToast(rows.length ? (rows.length + ' filas listas') : 'No se detectaron filas', !rows.length);
+}
+document.getElementById('proyPreviewBtn')?.addEventListener('click', runProyPreviewFromPaste);
+document.getElementById('proyPaste')?.addEventListener('paste', function () {
+  setTimeout(runProyPreviewFromPaste, 10);
+});
+document.getElementById('proyAddRowBtn')?.addEventListener('click', function () {
+  proyBatch.push({
+    codigo_unico: null, codigo_snip: null, titulo: '',
+    costo: null, pim: null, devengado: null, avance_pct: null, devengado_acumulado: null,
+    anio: parseInt((document.getElementById('proyAnio') || {}).value, 10) || 2026
+  });
+  renderProyPreview();
+});
+document.getElementById('proyPublishBtn')?.addEventListener('click', async function () {
+  if (!proyBatch.length) { showToast('No hay filas en el lote', true); return; }
+  var minOrder = proyCache.length ? Math.min.apply(null, proyCache.map(function (p) { return p.sort_order ?? 0; })) : 0;
+  var payload = proyBatch.filter(function (r) { return r.titulo && String(r.titulo).trim(); }).map(function (r, idx) {
+    return {
+      codigo_unico: r.codigo_unico,
+      codigo_snip: r.codigo_snip,
+      titulo: String(r.titulo).trim(),
+      costo: r.costo,
+      pim: r.pim,
+      devengado: r.devengado,
+      avance_pct: r.avance_pct,
+      devengado_acumulado: r.devengado_acumulado,
+      anio: r.anio || 2026,
+      status: 'published',
+      sort_order: minOrder - (proyBatch.length - idx),
+      updated_at: new Date().toISOString()
+    };
+  });
+  if (!payload.length) { showToast('Faltan títulos', true); return; }
+  var res = await sb.from('proyectos_inversion').insert(payload);
+  if (res.error) { showToast(res.error.message, true); return; }
+  showToast('Lote publicado: ' + payload.length + ' proyectos');
+  proyBatch = [];
+  if (document.getElementById('proyPaste')) document.getElementById('proyPaste').value = '';
+  renderProyPreview();
+  await loadProyectos();
+});
+async function loadProyectos() {
+  var res = await sb.from('proyectos_inversion').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: false });
+  var tbody = document.getElementById('proyTable');
+  if (!tbody) return;
+  if (res.error) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:#B23A2E;padding:12px">' + escapeHtml(res.error.message) + ' — ¿Ejecutaste supabase_proyectos.sql?</td></tr>';
+    return;
+  }
+  proyCache = res.data || [];
+  if (!proyCache.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:14px;color:#5A6459">Ningún proyecto</td></tr>';
+    return;
+  }
+  tbody.innerHTML = proyCache.map(function (p) {
+    return '<tr><td><div class="row-actions">' +
+      '<button class="chip-btn btn-sm" onclick="moveProy(\''+p.id+'\',-1)">↑</button>' +
+      '<button class="chip-btn btn-sm" onclick="moveProy(\''+p.id+'\',1)">↓</button></div></td>' +
+      '<td>'+escapeHtml(p.codigo_unico||'—')+'</td>' +
+      '<td>'+escapeHtml(p.titulo)+'</td>' +
+      '<td>'+(p.avance_pct!=null?p.avance_pct+'%':'—')+'</td>' +
+      '<td><button class="chip-btn btn-sm" onclick="deleteProy(\''+p.id+'\')">Eliminar</button></td></tr>';
+  }).join('');
+}
+window.moveProy = async function (id, dir) {
+  var posts = proyCache.slice().sort(function (a,b){ return (a.sort_order??0)-(b.sort_order??0); });
+  var i = posts.findIndex(function (p){ return p.id===id; });
+  var j = i + dir;
+  if (i < 0 || j < 0 || j >= posts.length) return;
+  var a = posts[i], b = posts[j];
+  var oa = a.sort_order ?? i, ob = b.sort_order ?? j;
+  var e1 = (await sb.from('proyectos_inversion').update({ sort_order: ob }).eq('id', a.id)).error;
+  var e2 = (await sb.from('proyectos_inversion').update({ sort_order: oa }).eq('id', b.id)).error;
+  if (e1 || e2) { showToast((e1||e2).message, true); return; }
+  showToast('Orden actualizado');
+  await loadProyectos();
+};
+window.deleteProy = async function (id) {
+  if (!confirm('¿Eliminar proyecto?')) return;
+  var res = await sb.from('proyectos_inversion').delete().eq('id', id);
+  if (res.error) showToast(res.error.message, true); else { showToast('Eliminado'); loadProyectos(); }
+};
+
 
 updatePreview();
 </script>
