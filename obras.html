@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Obras | Municipalidad Distrital de Río Negro</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Obras y proyectos | Municipalidad Distrital de Río Negro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--verde-oscuro:#14311F;--verde-medio:#2A6B47;--verde-tenue:#EEF3EE;--rojo:#B23A2E;--borde:#DCE3DD;--texto:#1D2620;--texto-secundario:#5A6459;--font-display:'DM Serif Display',serif;--font-body:'Inter',sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden;max-width:100%}
 body{font-family:var(--font-body);color:var(--texto);background:#fff;font-size:14px;line-height:1.5}
 a{color:inherit;text-decoration:none}
 .container{width:min(1120px,100%);margin:0 auto;padding:0 24px}
@@ -27,7 +28,15 @@ a{color:inherit;text-decoration:none}
 .page-header .eyebrow{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#a9c5b4;font-weight:600}
 .page-header h1{color:#fff;font-family:var(--font-display);font-size:clamp(24px,3.4vw,34px);margin-top:6px}
 .page-header p{color:#c7d7cc;font-size:14.5px;max-width:640px;margin-top:10px}
-.section{padding:36px 0 48px}
+.section{padding:32px 0 40px}
+.section h2{font-size:20px;color:var(--verde-oscuro);margin-bottom:6px}
+.section .sub{font-size:13px;color:var(--texto-secundario);margin-bottom:16px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tabs button{
+  border:1px solid var(--borde);background:#fff;padding:8px 14px;border-radius:999px;
+  font-size:13px;font-weight:600;cursor:pointer;color:var(--texto-secundario);
+}
+.tabs button.active{background:var(--verde-oscuro);color:#fff;border-color:var(--verde-oscuro)}
 .obra-card{display:grid;grid-template-columns:1.2fr 1fr;border:1px solid var(--borde);border-radius:10px;overflow:hidden;background:#fff;margin-bottom:16px}
 @media(max-width:800px){.obra-card{grid-template-columns:1fr}}
 .obra-card .img{min-height:180px;background:var(--verde-tenue)}
@@ -41,7 +50,22 @@ a{color:inherit;text-decoration:none}
 .btn{display:inline-block;background:var(--verde-oscuro);color:#fff;padding:9px 14px;border-radius:6px;font-size:12.5px;font-weight:600}
 .btn:hover{background:var(--verde-medio)}
 .empty{text-align:center;padding:40px;color:var(--texto-secundario);border:1px dashed var(--borde);border-radius:10px}
+.table-wrap{background:#fff;border:1px solid var(--borde);border-radius:10px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--borde);text-align:left;vertical-align:middle}
+th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-transform:uppercase;white-space:nowrap}
+.bar{height:8px;background:#e8ece8;border-radius:99px;overflow:hidden;min-width:70px;display:inline-block;vertical-align:middle;width:80px}
+.bar>i{display:block;height:100%;background:var(--verde-medio)}
+.mef-link{font-size:12.5px;margin-top:12px}
+.mef-link a{color:var(--verde-medio);font-weight:600;text-decoration:underline}
 .site-footer{background:var(--verde-oscuro);color:#c7d7cc;padding:28px 0;margin-top:20px;font-size:13px}
+@media(max-width:700px){
+  .container{padding:0 12px}
+  .nav{width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .nav a{white-space:nowrap;font-size:11px}
+  table{font-size:11.5px}
+  th,td{padding:6px 8px}
+}
 </style>
 </head>
 <body>
@@ -58,35 +82,136 @@ a{color:inherit;text-decoration:none}
 </div></header>
 <div class="breadcrumb"><div class="container"><a href="index.html">Inicio</a> <span>/</span> <span>Obras</span></div></div>
 <section class="page-header"><div class="container">
-  <div class="eyebrow">Infraestructura y proyectos</div>
-  <h1>Obras de Río Negro</h1>
-  <p>Proyectos de inversión y contrataciones de obra del distrito. Puedes consultar el detalle y el enlace oficial de cada proceso.</p>
+  <div class="eyebrow">Infraestructura y presupuesto</div>
+  <h1>Obras y proyectos</h1>
+  <p>Obras destacadas de la municipalidad y proyectos de inversión (referencia MEF / SIAF).</p>
 </div></section>
-<section class="section"><div class="container" id="obrasList">
-  <div class="empty">Cargando obras…</div>
+
+<section class="section"><div class="container">
+  <div class="tabs">
+    <button type="button" class="active" data-tab="obras">Obras destacadas</button>
+    <button type="button" data-tab="proyectos">Proyectos MEF / SIAF</button>
+  </div>
+
+  <div id="panel-obras">
+    <h2>Obras destacadas</h2>
+    <p class="sub">Publicadas desde el panel administrador (fotos, descripción y enlaces).</p>
+    <div id="obrasList"><div class="empty">Cargando obras…</div></div>
+  </div>
+
+  <div id="panel-proyectos" style="display:none">
+    <h2>Proyectos de inversión</h2>
+    <p class="sub">Datos cargados por la municipalidad (pueden basarse en la Consulta Amigable del MEF).</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>SNIP</th>
+            <th>Proyecto</th>
+            <th>Costo</th>
+            <th>PIM</th>
+            <th>Devengado</th>
+            <th>Avance</th>
+          </tr>
+        </thead>
+        <tbody id="proyBody"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="mef-link">
+      Fuente oficial:
+      <a href="https://ofi5.mef.gob.pe/proyectos_pte/forms/UnidadEjecutora.aspx?tipo=2&IdUE=301096&IdUEBase=301096&periodoBase=2026" target="_blank" rel="noopener">Consulta Amigable MEF – Unidad Ejecutora</a>
+    </p>
+  </div>
 </div></section>
+
 <footer class="site-footer"><div class="container">© Municipalidad Distrital de Río Negro</div></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
 <script>
-const sb = supabase.createClient('https://iioxuxnbkgrwswufvlzo.supabase.co','sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK');
-function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
-sb.from('obras').select('*').eq('status','published').order('sort_order',{ascending:true}).order('created_at',{ascending:false})
-.then(({data,error})=>{
-  const box=document.getElementById('obrasList');
-  if(error){box.innerHTML='<div class="empty">No se pudieron cargar las obras. ¿Creaste la tabla obras en Supabase?</div>';return}
-  if(!data||!data.length){box.innerHTML='<div class="empty">Aún no hay obras publicadas. Agrégalas desde el panel administrador.</div>';return}
-  box.innerHTML=data.map(o=>{
-    const img=o.image_url?`<div class="img"><img src="${o.image_url}" alt=""></div>`:`<div class="img"></div>`;
-    const btn=o.link_url?`<a class="btn" href="${esc(o.link_url)}" target="_blank" rel="noopener">${esc(o.button_text||'Ver detalle')}</a>`:'';
-    return `<article class="obra-card">${img}<div class="body">
-      <div class="tag">${esc(o.tag||'Obra')}</div>
-      <h3>${esc(o.title)}</h3>
-      <p>${esc(o.body||'')}</p>
-      <div class="obra-meta">${o.amount?`<div><strong>Inversión:</strong> ${esc(o.amount)}</div>`:''}${o.location?`<div><strong>Ubicación:</strong> ${esc(o.location)}</div>`:''}</div>
-      ${btn}
-    </div></article>`;
-  }).join('');
-});
+(function () {
+  var sb = window.supabase.createClient(
+    'https://iioxuxnbkgrwswufvlzo.supabase.co',
+    'sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK'
+  );
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+  }
+  function money(n) {
+    if (n == null || n === '') return '—';
+    return Number(n).toLocaleString('es-PE');
+  }
+
+  document.querySelectorAll('.tabs button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var tab = btn.getAttribute('data-tab');
+      document.getElementById('panel-obras').style.display = tab === 'obras' ? 'block' : 'none';
+      document.getElementById('panel-proyectos').style.display = tab === 'proyectos' ? 'block' : 'none';
+    });
+  });
+
+  // Obras (cards)
+  sb.from('obras').select('*').eq('status', 'published').order('sort_order', { ascending: true }).order('created_at', { ascending: false })
+    .then(function (res) {
+      var box = document.getElementById('obrasList');
+      if (res.error) {
+        box.innerHTML = '<div class="empty">No se pudieron cargar las obras.</div>';
+        return;
+      }
+      var data = res.data || [];
+      if (!data.length) {
+        box.innerHTML = '<div class="empty">Aún no hay obras destacadas. Agrégalas en el admin → Obras.</div>';
+        return;
+      }
+      box.innerHTML = data.map(function (o) {
+        var img = o.image_url ? '<div class="img"><img src="' + o.image_url + '" alt=""></div>' : '<div class="img"></div>';
+        var btn = o.link_url
+          ? '<a class="btn" href="' + esc(o.link_url) + '" target="_blank" rel="noopener">' + esc(o.button_text || 'Ver detalle') + '</a>'
+          : '';
+        return '<article class="obra-card">' + img + '<div class="body">' +
+          '<div class="tag">' + esc(o.tag || 'Obra') + '</div>' +
+          '<h3>' + esc(o.title) + '</h3>' +
+          '<p>' + esc(o.body || '') + '</p>' +
+          '<div class="obra-meta">' +
+            (o.amount ? '<div><strong>Inversión:</strong> ' + esc(o.amount) + '</div>' : '') +
+            (o.location ? '<div><strong>Ubicación:</strong> ' + esc(o.location) + '</div>' : '') +
+          '</div>' + btn + '</div></article>';
+      }).join('');
+    });
+
+  // Proyectos MEF (tabla)
+  sb.from('proyectos_inversion').select('*').eq('status', 'published').order('sort_order', { ascending: true }).order('created_at', { ascending: false })
+    .then(function (res) {
+      var tb = document.getElementById('proyBody');
+      if (res.error) {
+        tb.innerHTML = '<tr><td colspan="7" class="empty">' + esc(res.error.message) + ' (¿Ejecutaste el SQL de proyectos?)</td></tr>';
+        return;
+      }
+      var data = res.data || [];
+      if (!data.length) {
+        tb.innerHTML = '<tr><td colspan="7" class="empty">Aún no hay proyectos. Cárgalos en el admin → Proyectos MEF.</td></tr>';
+        return;
+      }
+      tb.innerHTML = data.map(function (p) {
+        var pct = p.avance_pct != null ? Math.max(0, Math.min(100, Number(p.avance_pct))) : null;
+        var bar = pct != null
+          ? '<div class="bar"><i style="width:' + pct + '%"></i></div> ' + pct + '%'
+          : '—';
+        return '<tr>' +
+          '<td>' + esc(p.codigo_unico || '—') + '</td>' +
+          '<td>' + esc(p.codigo_snip || '—') + '</td>' +
+          '<td>' + esc(p.titulo) + '</td>' +
+          '<td>' + money(p.costo) + '</td>' +
+          '<td>' + money(p.pim) + '</td>' +
+          '<td>' + money(p.devengado) + '</td>' +
+          '<td>' + bar + '</td></tr>';
+      }).join('');
+    });
+})();
 </script>
 </body>
 </html>
