@@ -103,7 +103,7 @@ ul{list-style:none;}
 .hero-badge img{width:130px; height:130px; object-fit:contain; opacity:.92;}
 
 /* quick tiles — single accent, no rainbow */
-.tile-grid{display:grid; grid-template-columns:repeat(6,1fr); border-top:1px solid var(--borde); border-bottom:1px solid var(--borde);}
+.tile-grid{display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid var(--borde); border-bottom:1px solid var(--borde);}
 .tile{background:#fff; padding:22px 14px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; border-right:1px solid var(--borde);}
 .tile:last-child{border-right:none;}
 .tile:hover{background:var(--verde-tenue);}
@@ -520,10 +520,77 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
   cursor:pointer; width:22px; height:22px;
 }
 
+
+/* Carruseles de publicaciones */
+#rnDynamicFeatured.is-carousel,
+#rnDynamicPosts.is-carousel .fb-track {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding-bottom: 6px;
+}
+#rnDynamicFeatured.is-carousel .featured-pub,
+#rnDynamicPosts.is-carousel .fb-post {
+  flex: 0 0 min(88%, 400px);
+  scroll-snap-align: start;
+  max-width: min(88%, 400px);
+}
+#rnDynamicPosts .fb-track {
+  display: block;
+}
+#rnDynamicPosts.is-carousel .fb-track {
+  display: flex;
+}
+#rnDynamicPosts.is-carousel .fb-feed-title {
+  margin-bottom: 10px;
+}
+@media (min-width: 701px) {
+  #rnDynamicFeatured.is-carousel .featured-pub,
+  #rnDynamicPosts.is-carousel .fb-post {
+    flex-basis: min(420px, 90%);
+    max-width: min(420px, 90%);
+  }
+}
+
 /* Móvil compacto municipal */
 
 /* Móvil compacto municipal */
 @media (max-width:700px){
+
+  .navbar, .navbar .container {
+    max-width: 100% !important;
+    overflow: hidden;
+  }
+  .navbar .nav-links,
+  ul.nav-links {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x !important;
+    gap: 0 !important;
+    padding: 4px 8px 6px !important;
+    scrollbar-width: none;
+    list-style: none;
+    margin: 0;
+  }
+  .navbar .nav-links::-webkit-scrollbar { display: none; }
+  .navbar .nav-links > li {
+    flex-shrink: 0 !important;
+  }
+  .navbar .nav-links .top-link {
+    white-space: nowrap !important;
+    font-size: 11px !important;
+    padding: 6px 11px !important;
+  }
+  .top-bar .container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
   html, body {
     overflow-x: hidden !important;
     max-width: 100vw !important;
@@ -747,7 +814,6 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
       <li><a class="top-link" href="servicios.html">Servicios</a></li>
       <li><a class="top-link" href="integridad.html">Integridad</a></li>
       <li><a class="top-link" href="serenazgo.html">Serenazgo</a></li>
-      <li><a class="top-link" href="obras.html">Obras</a></li>
       <li><a class="top-link" href="contacto.html">Contacto</a></li>
     </ul>
   </div>
@@ -795,6 +861,12 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
     <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19C4 11 9.5 4.5 20 4c-.7 9.7-7 15-15.5 15z"/><path d="M4.5 19c3-3 6.5-6.5 12-12"/></svg></div>
     <div class="tile-title">Río Negro</div>
     <div class="tile-desc">Cultura y turismo</div>
+  </a>
+
+  <a class="tile" href="obras.html">
+    <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6"/></svg></div>
+    <div class="tile-title">Obras</div>
+    <div class="tile-desc">Proyectos e infraestructura</div>
   </a>
   <a class="tile" href="contacto.html">
     <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="1"/><path d="M4 6.5l8 6 8-6"/></svg></div>
@@ -1013,6 +1085,7 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
     }
   });
 
+
   function renderPosts(posts) {
     posts = posts || [];
     posts.sort(function (a, b) {
@@ -1026,22 +1099,30 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 
     var featBox = document.getElementById('rnDynamicFeatured');
     if (featBox) {
-      featBox.innerHTML = featured.map(function (p) {
-        var img = (p.images && p.images[0]) ? '<img src="' + p.images[0] + '" alt="">' : '';
-        var cta = p.button_text ? '<a class="btn-feat" href="' + esc(p.link_url || '#') + '">' + esc(p.button_text) + '</a>' : '';
-        return '<div class="featured-pub"><div class="featured-img">' + img + '</div><div class="featured-side">' +
-          '<span class="badge-tag">' + esc(p.category || 'comunicado') + '</span>' +
-          '<h3>' + esc(p.title) + '</h3><p>' + esc(p.body || '') + '</p>' + cta + '</div></div>';
-      }).join('');
+      if (!featured.length) {
+        featBox.innerHTML = '';
+        featBox.classList.remove('is-carousel');
+      } else {
+        featBox.innerHTML = featured.map(function (p) {
+          var img = (p.images && p.images[0]) ? '<img src="' + p.images[0] + '" alt="">' : '';
+          var cta = p.button_text ? '<a class="btn-feat" href="' + esc(p.link_url || '#') + '">' + esc(p.button_text) + '</a>' : '';
+          return '<div class="featured-pub"><div class="featured-img">' + img + '</div><div class="featured-side">' +
+            '<span class="badge-tag">' + esc(p.category || 'comunicado') + '</span>' +
+            '<h3>' + esc(p.title) + '</h3><p>' + esc(p.body || '') + '</p>' + cta + '</div></div>';
+        }).join('');
+        // Carrusel solo si hay 2 o más destacados
+        if (featured.length >= 2) featBox.classList.add('is-carousel');
+        else featBox.classList.remove('is-carousel');
+      }
     }
 
     var listBox = document.getElementById('rnDynamicPosts');
     if (!listBox) return;
-    if (!normal.length && !featured.length) {
+    if (!normal.length) {
       listBox.innerHTML = '';
+      listBox.classList.remove('is-carousel');
       return;
     }
-    if (!normal.length) { listBox.innerHTML = ''; return; }
     var cards = normal.map(function (p) {
       var imgs = p.images || [];
       var imgHtml = '';
@@ -1065,7 +1146,10 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
         buildTextHtml(p.title, p.body) +
         cta + imgHtml + '</article>';
     }).join('');
-    listBox.innerHTML = '<h2 class="fb-feed-title">Comunicados y noticias</h2>' + cards;
+    listBox.innerHTML = '<h2 class="fb-feed-title">Comunicados y noticias</h2><div class="fb-track">' + cards + '</div>';
+    // Carrusel de normales si hay más de 1
+    if (normal.length > 1) listBox.classList.add('is-carousel');
+    else listBox.classList.remove('is-carousel');
   }
 
   function boot() {
@@ -1113,7 +1197,7 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
     el.addEventListener('pointercancel', up);
   }
   function boot() {
-    document.querySelectorAll('.nav, ul.nav, .nav-bar, nav').forEach(enableDragScroll);
+    document.querySelectorAll('.nav, ul.nav, .nav-bar, nav, ul.nav-links, .nav-links, .top-bar .container, #rnDynamicFeatured, #rnDynamicPosts .fb-track').forEach(enableDragScroll);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
