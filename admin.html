@@ -369,7 +369,7 @@ button,input,textarea,select{font-family:inherit}
           <div class="field"><label>CUI</label><input type="text" id="ctCui" placeholder="2540340"></div>
           <div class="field"><label>OCDS / ID proceso</label><input type="text" id="ctOcds" placeholder="ocds-dgv273-seacev3-2023-1161-31"></div>
           <div class="field"><label>Enlace oficial</label><input type="text" id="ctLink" placeholder="https://..."></div>
-          <div class="field"><label>Inicia</label><input type="text" id="ctFechaIni" placeholder="25-05-2023"></div>
+          <div class="field"><label>Inicia</label><input type="text" id="ctFechaIni" placeholder="25-05-2023 o 2023-05-25"></div>
           <div class="field"><label>Cierra</label><input type="text" id="ctFechaFin" placeholder="25-05-2023"></div>
           <div class="field"><label>Convocatoria (inicia — finaliza)</label><input type="text" id="ctConv" placeholder="25-05-2023 — 25-05-2023"></div>
           <div class="field"><label>Consultas (inicia — finaliza)</label><input type="text" id="ctCons" placeholder="26-05-2023 — 01-06-2023"></div>
@@ -1091,6 +1091,26 @@ document.getElementById('ctTipo')?.addEventListener('change', function () {
     if (o) o.value = '';
   }
 });
+
+function toIsoDate(v) {
+  if (v == null) return null;
+  v = String(v).trim();
+  if (!v) return null;
+  // already ISO
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  // DD-MM-YYYY or DD/MM/YYYY
+  var m = v.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if (m) {
+    var d = m[1].padStart(2, '0');
+    var mo = m[2].padStart(2, '0');
+    var y = m[3];
+    if (y.length === 2) y = (parseInt(y, 10) > 50 ? '19' : '20') + y;
+    return y + '-' + mo + '-' + d;
+  }
+  // DD-MM-YY short
+  return null;
+}
+
 function getCtTipoValue() {
   var sel = document.getElementById('ctTipo');
   if (!sel) return null;
@@ -1304,8 +1324,8 @@ document.getElementById('ctSaveBtn')?.addEventListener('click', async function (
     cui: document.getElementById('ctCui').value.trim() || null,
     ocds_id: document.getElementById('ctOcds').value.trim() || null,
     link_url: document.getElementById('ctLink').value.trim() || null,
-    fecha_inicio: document.getElementById('ctFechaIni').value.trim() || null,
-    fecha_cierre: document.getElementById('ctFechaFin').value.trim() || null,
+    fecha_inicio: toIsoDate(document.getElementById('ctFechaIni').value) || null,
+    fecha_cierre: toIsoDate(document.getElementById('ctFechaFin').value) || null,
     cronograma: ctSteps.map(function (s, i) {
       return { n: s.n || i + 1, nombre: s.nombre || '', fecha: s.fecha || '', done: !!s.done };
     }),
