@@ -328,10 +328,16 @@ button,input,textarea,select{font-family:inherit}
               <option>Adjudicación Simplificada</option>
               <option>Licitación Pública Abreviada</option>
               <option>Licitación Pública</option>
+              <option>Concurso Público Abreviado</option>
+              <option>Concurso Público</option>
               <option>Comparación de Precios</option>
               <option>Contratación Directa</option>
-              <option>Otro</option>
+              <option value="__otro__">Otro (escribir)</option>
             </select>
+          </div>
+          <div class="field" id="ctTipoOtroWrap" style="display:none">
+            <label>Tipo personalizado</label>
+            <input type="text" id="ctTipoOtro" placeholder="Ej. Concurso Público Abreviado">
           </div>
           <div class="field"><label>Etapa</label>
             <select id="ctEtapa">
@@ -1075,6 +1081,26 @@ function renderCronoBuilder() {
   });
 }
 
+
+document.getElementById('ctTipo')?.addEventListener('change', function () {
+  var wrap = document.getElementById('ctTipoOtroWrap');
+  if (!wrap) return;
+  wrap.style.display = this.value === '__otro__' ? 'block' : 'none';
+  if (this.value !== '__otro__') {
+    var o = document.getElementById('ctTipoOtro');
+    if (o) o.value = '';
+  }
+});
+function getCtTipoValue() {
+  var sel = document.getElementById('ctTipo');
+  if (!sel) return null;
+  if (sel.value === '__otro__') {
+    var t = (document.getElementById('ctTipoOtro') || {}).value || '';
+    return t.trim() || null;
+  }
+  return sel.value || null;
+}
+
 document.getElementById('ctAddStep')?.addEventListener('click', function () {
   ctSteps.push({ n: ctSteps.length + 1, nombre: '', fecha: '', done: false });
   renderCronoBuilder();
@@ -1168,6 +1194,8 @@ function parseContratacionText(text) {
     // wrong capture
     if (/adjudicaci[oó]n simplificada/i.test(text)) out.tipo = 'Adjudicación Simplificada';
     else if (/licitaci[oó]n p[uú]blica abreviada/i.test(text)) out.tipo = 'Licitación Pública Abreviada';
+    else if (/concurso p[uú]blico abreviado/i.test(text)) out.tipo = 'Concurso Público Abreviado';
+    else if (/concurso p[uú]blico/i.test(text)) out.tipo = 'Concurso Público';
     else out.tipo = '';
   }
   // clean estado - single word-ish
@@ -1206,12 +1234,21 @@ function fillCtForm(p) {
   document.getElementById('ctNom').value = p.nomenclatura || '';
   document.getElementById('ctDesc').value = p.descripcion || '';
   var tipoEl = document.getElementById('ctTipo');
-  if (p.tipo) {
+  var tipoOtroWrap = document.getElementById('ctTipoOtroWrap');
+  var tipoOtroInp = document.getElementById('ctTipoOtro');
+  if (tipoOtroWrap) tipoOtroWrap.style.display = 'none';
+  if (tipoOtroInp) tipoOtroInp.value = '';
+  if (p.tipo && tipoEl) {
     var found = false;
     for (var i = 0; i < tipoEl.options.length; i++) {
-      if (tipoEl.options[i].value === p.tipo || tipoEl.options[i].text === p.tipo) { tipoEl.value = tipoEl.options[i].value || tipoEl.options[i].text; found = true; break; }
+      var opt = tipoEl.options[i];
+      if (opt.value === p.tipo || opt.text === p.tipo) { tipoEl.value = opt.value || opt.text; found = true; break; }
     }
-    if (!found) { tipoEl.value = 'Otro'; }
+    if (!found) {
+      tipoEl.value = '__otro__';
+      if (tipoOtroWrap) tipoOtroWrap.style.display = 'block';
+      if (tipoOtroInp) tipoOtroInp.value = p.tipo;
+    }
   }
   document.getElementById('ctCat').value = p.categoria || 'Obras';
   document.getElementById('ctEtapa').value = p.etapa || p.estado || '';
@@ -1258,7 +1295,7 @@ document.getElementById('ctSaveBtn')?.addEventListener('click', async function (
     nomenclatura: document.getElementById('ctNom').value.trim() || null,
     descripcion: document.getElementById('ctDesc').value.trim() || null,
     descripcion_corta: (document.getElementById('ctDesc').value.trim() || titulo).slice(0, 280),
-    tipo: document.getElementById('ctTipo').value || null,
+    tipo: getCtTipoValue(),
     categoria: document.getElementById('ctCat').value || null,
     etapa: document.getElementById('ctEtapa').value || document.getElementById('ctEstado').value.trim() || null,
     estado: document.getElementById('ctEstado').value.trim() || document.getElementById('ctEtapa').value || null,
