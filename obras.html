@@ -41,6 +41,22 @@ a{color:inherit;text-decoration:none}
 .ct-badge.etapa{background:#e8f5ee;color:var(--verde-medio)}
 .ct-badge.tipo{background:var(--azul-claro);color:#1557b0}
 .ct-badge.cat{background:#fff3e0;color:#b86e00}
+
+.ct-badge.tipo{background:#0d9488;color:#fff}
+.ct-badge.etapa{background:#16a34a;color:#fff}
+.ct-badge.etapa.convocatoria{background:#16a34a}
+.ct-badge.etapa.adjudicacion{background:#2563eb}
+.ct-badge.etapa.contrato{background:#2563eb}
+.ct-badge.cat{background:#f97316;color:#fff}
+.ct-ocds{font-size:12px;color:#64748b;font-family:ui-monospace,monospace}
+.ct-actions .btn-pdf{background:#14311F}
+@media print {
+  .top-bar,.site-header,.breadcrumb,.page-header,.tabs,.site-footer,.back-btn,.ct-actions{display:none!important}
+  #ctList{display:none!important}
+  #ctDetail{display:block!important}
+  body{background:#fff}
+}
+
 .ct-card h3{font-size:16px;color:var(--verde-oscuro);margin-bottom:4px;line-height:1.35}
 .ct-meta{font-size:12.5px;color:var(--texto-secundario);margin-bottom:8px}
 .ct-desc{font-size:13px;color:#333;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -188,23 +204,23 @@ th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-t
   });
 
   function stageClass(step, estado) {
+    if (step.done === true) return 'done';
+    if (step.done === false) {
+      // si ninguna marcada, inferir por estado
+    }
     var order = ['publicacion','fin consultas','cierre','adjudicacion','adjudicación','firma','contrato'];
     var name = (step.nombre || '').toLowerCase();
     var est = (estado || '').toLowerCase();
-    var idx = -1;
+    var idx = -1, estIdx = -1;
     for (var i = 0; i < order.length; i++) {
-      if (name.indexOf(order[i].replace('ó','o')) >= 0 || name.indexOf(order[i]) >= 0) { idx = i; break; }
+      if (name.indexOf(order[i].replace('ó','o')) >= 0 || name.indexOf(order[i]) >= 0) idx = i;
+      if (est.indexOf(order[i].replace('ó','o')) >= 0 || est.indexOf(order[i]) >= 0) estIdx = i;
     }
     if (step.done === true) return 'done';
-    if (step.done === false) return '';
-    // auto: etapas hasta el estado actual en verde
-    var estIdx = -1;
-    for (var j = 0; j < order.length; j++) {
-      if (est.indexOf(order[j].replace('ó','o')) >= 0 || est.indexOf(order[j]) >= 0) { estIdx = j; break; }
-    }
-    if (estIdx < 0 && /contrato/.test(est)) estIdx = 6;
-    if (idx >= 0 && estIdx >= 0 && idx <= estIdx) return 'done';
-    if (idx === estIdx) return 'current';
+    if (estIdx < 0 && /contrato/.test(est)) estIdx = 5;
+    if (idx >= 0 && estIdx >= 0 && idx < estIdx) return 'done';
+    if (idx >= 0 && idx === estIdx) return 'current';
+    if (step.done === true) return 'done';
     return '';
   }
 
@@ -215,21 +231,27 @@ th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-t
       return;
     }
     box.innerHTML = rows.map(function (c) {
+      var etapaCls = 'etapa';
+      var et = (c.etapa || c.estado || '').toLowerCase();
+      if (/convoc/.test(et)) etapaCls += ' convocatoria';
+      else if (/adjudic/.test(et)) etapaCls += ' adjudicacion';
+      else if (/contrato|firma/.test(et)) etapaCls += ' contrato';
       return '<article class="ct-card" data-id="'+c.id+'">' +
         '<div class="ct-badges">' +
           (c.tipo ? '<span class="ct-badge tipo">'+esc(c.tipo)+'</span>' : '') +
-          (c.etapa ? '<span class="ct-badge etapa">'+esc(c.etapa)+'</span>' : '') +
+          (c.etapa || c.estado ? '<span class="ct-badge '+etapaCls+'">'+esc(c.etapa || c.estado)+'</span>' : '') +
           (c.categoria ? '<span class="ct-badge cat">'+esc(c.categoria)+'</span>' : '') +
         '</div>' +
         '<h3>'+esc(c.titulo)+'</h3>' +
         '<div class="ct-meta">'+esc(c.entidad || 'Municipalidad Distrital de Río Negro') +
-          (c.fecha_inicio || c.fecha_cierre ? ' · ' + esc((c.fecha_inicio||'') + (c.fecha_cierre ? ' — ' + c.fecha_cierre : '')) : '') +
-          (c.ocds_id ? ' · ' + esc(c.ocds_id) : '') +
+          (c.fecha_inicio || c.fecha_cierre ? ' · Inicia ' + esc(c.fecha_inicio||'') + (c.fecha_cierre ? ' · Cierra ' + esc(c.fecha_cierre) : '') : '') +
         '</div>' +
+        (c.ocds_id ? '<div class="ct-ocds">'+esc(c.ocds_id)+'</div>' : '') +
         '<div class="ct-desc">'+esc(c.descripcion_corta || c.descripcion || '')+'</div>' +
         '<div class="ct-actions">' +
           '<button type="button" class="btn" data-detail="'+c.id+'">Ver detalle</button>' +
-          (c.link_url ? '<a class="btn-outline" href="'+esc(c.link_url)+'" target="_blank" rel="noopener">Fuente / SEACE</a>' : '') +
+          '<button type="button" class="btn btn-pdf" data-pdf="'+c.id+'">PDF</button>' +
+          (c.link_url ? '<a class="btn-outline" href="'+esc(c.link_url)+'" target="_blank" rel="noopener">Fuente</a>' : '') +
         '</div></article>';
     }).join('');
     box.querySelectorAll('[data-detail]').forEach(function (b) {
@@ -237,7 +259,7 @@ th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-t
     });
   }
 
-  function openDetail(id) {
+  function openDetail(id, doPrint) {
     var c = ctCache.find(function (x) { return x.id === id; });
     if (!c) return;
     var crono = Array.isArray(c.cronograma) ? c.cronograma : [];
@@ -283,15 +305,18 @@ th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-t
         '<div>' +
           '<div class="panel"><div class="panel-h green">Entidad</div><div class="panel-b">' +
             '<div class="row"><div class="lbl">Entidad</div><div class="val">'+esc(c.entidad||'Municipalidad Distrital de Río Negro')+'</div></div>' +
-            (c.link_url ? '<div class="row"><a class="btn-dark" href="'+esc(c.link_url)+'" target="_blank" rel="noopener">Ver en fuente oficial</a></div>' : '') +
+            (c.ocds_id ? '<div class="row"><div class="lbl">OCDS</div><div class="val">'+esc(c.ocds_id)+'</div></div>' : '') +(c.nomenclatura ? '<div class="row"><div class="lbl">Nomenclatura</div><div class="val">'+esc(c.nomenclatura)+'</div></div>' : '') +(c.link_url ? '<div class="row"><a class="btn-dark" href="'+esc(c.link_url)+'" target="_blank" rel="noopener">Ver en fuente oficial</a></div>' : '') +
           '</div></div>' +
         '</div>' +
       '</div>';
 
+    body = '<div style="margin-bottom:12px"><button type="button" class="btn btn-pdf" id="ctPrintBtn">Descargar / imprimir PDF</button></div>' + body;
     document.getElementById('ctDetailBody').innerHTML = body;
     document.getElementById('ctList').classList.add('hide');
     document.getElementById('ctDetail').classList.add('open');
+    document.getElementById('ctPrintBtn')?.addEventListener('click', function () { window.print(); });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (doPrint) setTimeout(function () { window.print(); }, 400);
   }
 
   document.getElementById('ctBack').addEventListener('click', function () {
