@@ -112,6 +112,7 @@ button,input,textarea,select{font-family:inherit}
       <a href="#" data-view="serenazgo"><svg viewBox="0 0 24 24"><path d="M12 3l7 2.5v6c0 5-3 8.2-7 9.5-4-1.3-7-4.5-7-9.5v-6z"/></svg>Serenazgo (destacado)</a>
       <a href="#" data-view="obras"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>Obras</a>
       <a href="#" data-view="proyectos"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Proyectos MEF</a>
+      <a href="#" data-view="contrataciones"><svg viewBox="0 0 24 24"><path d="M9 5h12M9 12h12M9 19h12M4 5h.01M4 12h.01M4 19h.01"/></svg>Contrataciones</a>
     </aside>
     <main class="main">
       <div id="view-publicaciones">
@@ -304,6 +305,47 @@ button,input,textarea,select{font-family:inherit}
         </div>
       </div>
 
+      
+      <div id="view-contrataciones" style="display:none">
+        <h2>Contrataciones (SEACE / procesos)</h2>
+        <div class="desc">Pega el texto del portal (cronograma + planificación + convocatoria). El sistema detecta campos y etapas. El color verde del cronograma se infiere por el <strong>Estado</strong> (ej. Contrato = etapas hasta contrato en verde).</div>
+        <div class="card">
+          <h3>Pegar ficha completa</h3>
+          <div class="field"><label>Texto copiado</label>
+            <textarea id="ctPaste" rows="12" placeholder="Cronograma del Proceso&#10;1&#10;Publicación&#10;25-05-23&#10;...&#10;Estado:&#10;Contrato&#10;Monto:&#10;546.410 PEN&#10;Nomenclatura:&#10;AS-SM-2-2023-..."></textarea>
+          </div>
+          <div class="field"><label>Enlace oficial (opcional)</label><input type="text" id="ctLink" placeholder="https://..."></div>
+          <div class="actions-bar">
+            <button type="button" class="btn btn-outline" id="ctParseBtn">Analizar texto</button>
+            <button type="button" class="btn" id="ctSaveBtn">Publicar contratación</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Vista previa / edición</h3>
+          <div class="field"><label>Título</label><input type="text" id="ctTitulo"></div>
+          <div class="field"><label>Nomenclatura</label><input type="text" id="ctNom"></div>
+          <div class="field"><label>Descripción</label><textarea id="ctDesc" rows="4"></textarea></div>
+          <div class="field"><label>Tipo</label><input type="text" id="ctTipo" placeholder="Adjudicación Simplificada"></div>
+          <div class="field"><label>Categoría</label>
+            <select id="ctCat"><option value="Obras">Obras</option><option value="Bienes">Bienes</option><option value="Servicios">Servicios</option><option value="">—</option></select>
+          </div>
+          <div class="field"><label>Etapa / Estado</label><input type="text" id="ctEstado" placeholder="Contrato"></div>
+          <div class="field"><label>Monto</label><input type="text" id="ctMonto" placeholder="546.410 PEN"></div>
+          <div class="field"><label>Fuente financiamiento</label><input type="text" id="ctFuente"></div>
+          <div class="field"><label>CUI</label><input type="text" id="ctCui"></div>
+          <div class="field"><label>Convocatoria (inicia — finaliza)</label><input type="text" id="ctConv"></div>
+          <div class="field"><label>Consultas (inicia — finaliza)</label><input type="text" id="ctCons"></div>
+          <div class="field"><label>Cronograma (JSON editable)</label><textarea id="ctCrono" rows="5" placeholder='[{"n":1,"nombre":"Publicación","fecha":"25-05-23"}]'></textarea></div>
+        </div>
+        <div class="list-simple">
+          <h3 style="font-size:13px;margin-bottom:8px;color:var(--verde-oscuro)">Publicadas</h3>
+          <table>
+            <thead><tr><th>Orden</th><th>Título</th><th>Etapa</th><th></th></tr></thead>
+            <tbody id="ctTable"><tr><td colspan="4" style="text-align:center;padding:14px;color:#5A6459">—</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
       <div id="view-aviso" style="display:none">
         <h2>Barra de avisos</h2>
         <div class="desc">Por ahora se guarda en este navegador. Las publicaciones ya van a Supabase.</div>
@@ -425,6 +467,7 @@ document.querySelectorAll('.sidebar a').forEach(a => {
     a.classList.add('active');
     const v = a.dataset.view;
     document.getElementById('view-publicaciones').style.display = v === 'publicaciones' ? 'block' : 'none';
+    const vct = document.getElementById('view-contrataciones'); if (vct && v !== 'contrataciones') vct.style.display = 'none';
     document.getElementById('view-aviso').style.display = v === 'aviso' ? 'block' : 'none';
     const vs = document.getElementById('view-serenazgo'); if (vs) vs.style.display = v === 'serenazgo' ? 'block' : 'none';
     const vo = document.getElementById('view-obras'); if (vo) vo.style.display = v === 'obras' ? 'block' : 'none';
@@ -432,6 +475,9 @@ document.querySelectorAll('.sidebar a').forEach(a => {
     if (v === 'obras') loadObras();
     if (v === 'serenazgo') loadSer();
     if (v === 'proyectos') { renderProyPreview(); loadProyectos(); }
+    const vc = document.getElementById('view-contrataciones');
+    if (vc) vc.style.display = v === 'contrataciones' ? 'block' : 'none';
+    if (v === 'contrataciones') loadContrataciones();
   });
 });
 
@@ -932,6 +978,188 @@ window.deleteProy = async function (id) {
   if (res.error) showToast(res.error.message, true); else { showToast('Eliminado'); loadProyectos(); }
 };
 
+
+
+/* —— Contrataciones SEACE paste —— */
+let ctCacheAdmin = [];
+let ctParsed = null;
+
+function parseContratacionText(text) {
+  text = String(text || '').replace(/\r/g, '');
+  var out = {
+    titulo: '', nomenclatura: '', descripcion: '', tipo: '', categoria: '',
+    estado: '', monto: '', fuente_financiamiento: '', cui: '',
+    convocatoria_inicio: '', convocatoria_fin: '', consultas_inicio: '', consultas_fin: '',
+    cronograma: []
+  };
+  // Cronograma: número, nombre etapa, fecha
+  var stages = ['Publicación','Fin Consultas','Cierre','Adjudicación','Firma','Contrato'];
+  var lines = text.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  var i = 0;
+  while (i < lines.length) {
+    var ln = lines[i];
+    // step number alone
+    if (/^\d+$/.test(ln) && i + 2 < lines.length) {
+      var nombre = lines[i + 1];
+      var fecha = lines[i + 2];
+      if (/publicaci|consulta|cierre|adjudic|firma|contrato/i.test(nombre) && /\d{2}[-/]\d{2}/.test(fecha)) {
+        out.cronograma.push({ n: parseInt(ln, 10), nombre: nombre, fecha: fecha });
+        i += 3;
+        continue;
+      }
+    }
+    i++;
+  }
+  function afterLabel(label) {
+    var re = new RegExp(label + '\\s*:?\\s*', 'i');
+    var idx = text.search(re);
+    if (idx < 0) return '';
+    var rest = text.slice(idx).replace(re, '');
+    var next = rest.search(/\n\s*(Descripci[oó]n|Estado|Fuente|Monto|Nomenclatura|Tipo|Categor[ií]a|Convocatoria|Consultas|Planificaci|Cronograma)\s*:/i);
+    var chunk = next >= 0 ? rest.slice(0, next) : rest.slice(0, 400);
+    return chunk.replace(/\n+/g, ' ').trim();
+  }
+  out.descripcion = afterLabel('Descripci[oó]n') || out.descripcion;
+  // Prefer longer description under Convocatoria if present twice - take longest block
+  var descMatches = text.split(/Descripci[oó]n\s*:/i).slice(1).map(function (p) {
+    return p.split(/\n\s*(Estado|Fuente|Monto|Nomenclatura|Tipo|Categor)/i)[0].replace(/\n/g, ' ').trim();
+  }).filter(Boolean);
+  if (descMatches.length) {
+    out.descripcion = descMatches.sort(function (a, b) { return b.length - a.length; })[0];
+  }
+  out.estado = afterLabel('Estado');
+  out.fuente_financiamiento = afterLabel('Fuente(?: de)? financiamiento');
+  out.monto = afterLabel('Monto');
+  out.nomenclatura = afterLabel('Nomenclatura');
+  out.tipo = afterLabel('Tipo');
+  out.categoria = afterLabel('Categor[ií]a');
+  var conv = afterLabel('Convocatoria');
+  if (/inicia/i.test(conv)) {
+    var m = conv.match(/Inicia\s*([\d\-./]+)\s*[-–]\s*Finaliza\s*([\d\-./]+)/i);
+    if (m) { out.convocatoria_inicio = m[1]; out.convocatoria_fin = m[2]; }
+  }
+  var cons = afterLabel('Consultas');
+  if (/inicia/i.test(cons)) {
+    var m2 = cons.match(/Inicia\s*([\d\-./]+)\s*[-–]\s*Finaliza\s*([\d\-./]+)/i);
+    if (m2) { out.consultas_inicio = m2[1]; out.consultas_fin = m2[2]; }
+  }
+  var cui = text.match(/CUI\s*N[º°o]?\s*([\d]+)/i);
+  if (cui) out.cui = cui[1];
+  // título: primera línea larga o nombre de obra
+  if (out.descripcion) {
+    out.titulo = out.descripcion.slice(0, 120) + (out.descripcion.length > 120 ? '…' : '');
+  }
+  if (!out.categoria && /obra/i.test(text)) out.categoria = 'Obras';
+  if (!out.etapa && out.estado) out.etapa = out.estado;
+  return out;
+}
+
+function fillCtForm(p) {
+  document.getElementById('ctTitulo').value = p.titulo || '';
+  document.getElementById('ctNom').value = p.nomenclatura || '';
+  document.getElementById('ctDesc').value = p.descripcion || '';
+  document.getElementById('ctTipo').value = p.tipo || '';
+  document.getElementById('ctCat').value = p.categoria || 'Obras';
+  document.getElementById('ctEstado').value = p.estado || p.etapa || '';
+  document.getElementById('ctMonto').value = p.monto || '';
+  document.getElementById('ctFuente').value = p.fuente_financiamiento || '';
+  document.getElementById('ctCui').value = p.cui || '';
+  document.getElementById('ctConv').value = [p.convocatoria_inicio, p.convocatoria_fin].filter(Boolean).join(' — ');
+  document.getElementById('ctCons').value = [p.consultas_inicio, p.consultas_fin].filter(Boolean).join(' — ');
+  document.getElementById('ctCrono').value = JSON.stringify(p.cronograma || [], null, 2);
+  ctParsed = p;
+}
+
+document.getElementById('ctParseBtn')?.addEventListener('click', function () {
+  var p = parseContratacionText(document.getElementById('ctPaste').value || '');
+  fillCtForm(p);
+  showToast((p.cronograma || []).length ? 'Detectado: ' + p.cronograma.length + ' etapas' : 'Texto analizado (revisa campos)');
+});
+document.getElementById('ctPaste')?.addEventListener('paste', function () {
+  setTimeout(function () {
+    var p = parseContratacionText(document.getElementById('ctPaste').value || '');
+    if (p.descripcion || (p.cronograma && p.cronograma.length)) {
+      fillCtForm(p);
+      showToast('Ficha detectada');
+    }
+  }, 20);
+});
+
+document.getElementById('ctSaveBtn')?.addEventListener('click', async function () {
+  var titulo = document.getElementById('ctTitulo').value.trim();
+  if (!titulo) { showToast('Falta título', true); return; }
+  var crono = [];
+  try { crono = JSON.parse(document.getElementById('ctCrono').value || '[]'); } catch (e) { showToast('JSON cronograma inválido', true); return; }
+  var conv = document.getElementById('ctConv').value.split(/[—\-]/);
+  var cons = document.getElementById('ctCons').value.split(/[—\-]/);
+  var minOrder = ctCacheAdmin.length ? Math.min.apply(null, ctCacheAdmin.map(function (x) { return x.sort_order ?? 0; })) : 0;
+  var payload = {
+    titulo: titulo,
+    nomenclatura: document.getElementById('ctNom').value.trim() || null,
+    descripcion: document.getElementById('ctDesc').value.trim() || null,
+    descripcion_corta: (document.getElementById('ctDesc').value.trim() || titulo).slice(0, 280),
+    tipo: document.getElementById('ctTipo').value.trim() || null,
+    categoria: document.getElementById('ctCat').value || null,
+    etapa: document.getElementById('ctEstado').value.trim() || null,
+    estado: document.getElementById('ctEstado').value.trim() || null,
+    monto: document.getElementById('ctMonto').value.trim() || null,
+    fuente_financiamiento: document.getElementById('ctFuente').value.trim() || null,
+    cui: document.getElementById('ctCui').value.trim() || null,
+    link_url: document.getElementById('ctLink').value.trim() || null,
+    cronograma: crono,
+    convocatoria_inicio: (conv[0] || '').trim() || null,
+    convocatoria_fin: (conv[1] || '').trim() || null,
+    consultas_inicio: (cons[0] || '').trim() || null,
+    consultas_fin: (cons[1] || '').trim() || null,
+    status: 'published',
+    sort_order: minOrder - 1,
+    updated_at: new Date().toISOString()
+  };
+  var res = await sb.from('contrataciones').insert(payload);
+  if (res.error) { showToast(res.error.message, true); return; }
+  showToast('Contratación publicada');
+  document.getElementById('ctPaste').value = '';
+  await loadContrataciones();
+});
+
+async function loadContrataciones() {
+  var res = await sb.from('contrataciones').select('*').order('sort_order').order('created_at', { ascending: false });
+  var tbody = document.getElementById('ctTable');
+  if (!tbody) return;
+  if (res.error) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#B23A2E;padding:12px">' + escapeHtml(res.error.message) + '</td></tr>';
+    return;
+  }
+  ctCacheAdmin = res.data || [];
+  if (!ctCacheAdmin.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:14px;color:#5A6459">Ninguna</td></tr>';
+    return;
+  }
+  tbody.innerHTML = ctCacheAdmin.map(function (c) {
+    return '<tr><td><div class="row-actions">' +
+      '<button class="chip-btn btn-sm" onclick="moveCt(\''+c.id+'\',-1)">↑</button>' +
+      '<button class="chip-btn btn-sm" onclick="moveCt(\''+c.id+'\',1)">↓</button></div></td>' +
+      '<td>'+escapeHtml(c.titulo)+'</td>' +
+      '<td>'+escapeHtml(c.estado||c.etapa||'—')+'</td>' +
+      '<td><button class="chip-btn btn-sm" onclick="deleteCt(\''+c.id+'\')">Eliminar</button></td></tr>';
+  }).join('');
+}
+window.moveCt = async function (id, dir) {
+  var posts = ctCacheAdmin.slice().sort(function (a,b){ return (a.sort_order??0)-(b.sort_order??0); });
+  var i = posts.findIndex(function (p){ return p.id===id; });
+  var j = i + dir;
+  if (i < 0 || j < 0 || j >= posts.length) return;
+  var a = posts[i], b = posts[j];
+  await sb.from('contrataciones').update({ sort_order: b.sort_order ?? j }).eq('id', a.id);
+  await sb.from('contrataciones').update({ sort_order: a.sort_order ?? i }).eq('id', b.id);
+  showToast('Orden actualizado');
+  loadContrataciones();
+};
+window.deleteCt = async function (id) {
+  if (!confirm('¿Eliminar?')) return;
+  var res = await sb.from('contrataciones').delete().eq('id', id);
+  if (res.error) showToast(res.error.message, true); else { showToast('Eliminada'); loadContrataciones(); }
+};
 
 updatePreview();
 </script>
