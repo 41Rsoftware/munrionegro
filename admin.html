@@ -307,37 +307,84 @@ button,input,textarea,select{font-family:inherit}
 
       
       <div id="view-contrataciones" style="display:none">
-        <h2>Contrataciones (SEACE / procesos)</h2>
-        <div class="desc">Pega el texto del portal (cronograma + planificación + convocatoria). El sistema detecta campos y etapas. El color verde del cronograma se infiere por el <strong>Estado</strong> (ej. Contrato = etapas hasta contrato en verde).</div>
+        <h2>Contrataciones (SEACE)</h2>
+        <div class="desc">Puedes pegar la ficha completa o llenar los campos a mano. El <strong>cronograma</strong> lo armas tú con el constructor. Las etiquetas (tipo, etapa, categoría) se muestran como en Todolicitaciones.</div>
+
         <div class="card">
-          <h3>Pegar ficha completa</h3>
-          <div class="field"><label>Texto copiado</label>
-            <textarea id="ctPaste" rows="12" placeholder="Cronograma del Proceso&#10;1&#10;Publicación&#10;25-05-23&#10;...&#10;Estado:&#10;Contrato&#10;Monto:&#10;546.410 PEN&#10;Nomenclatura:&#10;AS-SM-2-2023-..."></textarea>
+          <h3>1) Pegar texto (opcional)</h3>
+          <div class="field"><label>Texto del portal</label>
+            <textarea id="ctPaste" rows="8" placeholder="Pega aquí el bloque del portal..."></textarea>
           </div>
-          <div class="field"><label>Enlace oficial (opcional)</label><input type="text" id="ctLink" placeholder="https://..."></div>
           <div class="actions-bar">
-            <button type="button" class="btn btn-outline" id="ctParseBtn">Analizar texto</button>
-            <button type="button" class="btn" id="ctSaveBtn">Publicar contratación</button>
+            <button type="button" class="btn btn-outline" id="ctParseBtn">Analizar y rellenar</button>
           </div>
         </div>
+
         <div class="card">
-          <h3>Vista previa / edición</h3>
-          <div class="field"><label>Título</label><input type="text" id="ctTitulo"></div>
-          <div class="field"><label>Nomenclatura</label><input type="text" id="ctNom"></div>
-          <div class="field"><label>Descripción</label><textarea id="ctDesc" rows="4"></textarea></div>
-          <div class="field"><label>Tipo</label><input type="text" id="ctTipo" placeholder="Adjudicación Simplificada"></div>
-          <div class="field"><label>Categoría</label>
-            <select id="ctCat"><option value="Obras">Obras</option><option value="Bienes">Bienes</option><option value="Servicios">Servicios</option><option value="">—</option></select>
+          <h3>2) Etiquetas (se ven primero en el listado)</h3>
+          <div class="field"><label>Tipo de proceso</label>
+            <select id="ctTipo">
+              <option value="">—</option>
+              <option>Adjudicación Simplificada</option>
+              <option>Licitación Pública Abreviada</option>
+              <option>Licitación Pública</option>
+              <option>Comparación de Precios</option>
+              <option>Contratación Directa</option>
+              <option>Otro</option>
+            </select>
           </div>
-          <div class="field"><label>Etapa / Estado</label><input type="text" id="ctEstado" placeholder="Contrato"></div>
-          <div class="field"><label>Monto</label><input type="text" id="ctMonto" placeholder="546.410 PEN"></div>
-          <div class="field"><label>Fuente financiamiento</label><input type="text" id="ctFuente"></div>
-          <div class="field"><label>CUI</label><input type="text" id="ctCui"></div>
-          <div class="field"><label>Convocatoria (inicia — finaliza)</label><input type="text" id="ctConv"></div>
-          <div class="field"><label>Consultas (inicia — finaliza)</label><input type="text" id="ctCons"></div>
-          <div class="field"><label>Cronograma (JSON editable)</label><textarea id="ctCrono" rows="5" placeholder='[{"n":1,"nombre":"Publicación","fecha":"25-05-23"}]'></textarea></div>
+          <div class="field"><label>Etapa</label>
+            <select id="ctEtapa">
+              <option value="">—</option>
+              <option>Convocatoria</option>
+              <option>Adjudicación</option>
+              <option>Contrato</option>
+              <option>Firma</option>
+              <option>Cierre</option>
+            </select>
+          </div>
+          <div class="field"><label>Categoría</label>
+            <select id="ctCat">
+              <option value="Obras">Obras</option>
+              <option value="Bienes">Bienes</option>
+              <option value="Servicios">Servicios</option>
+            </select>
+          </div>
         </div>
-        <div class="list-simple">
+
+        <div class="card">
+          <h3>3) Datos principales</h3>
+          <div class="field"><label>Título corto (listado)</label><input type="text" id="ctTitulo" placeholder="Construcción de cerco y/o portada..."></div>
+          <div class="field"><label>Nomenclatura</label><input type="text" id="ctNom" placeholder="AS-SM-2-2023-CS/MDRN-1"></div>
+          <div class="field"><label>Descripción completa</label><textarea id="ctDesc" rows="4"></textarea></div>
+          <div class="field"><label>Estado (texto portal)</label><input type="text" id="ctEstado" placeholder="Contrato"></div>
+          <div class="field"><label>Monto</label><input type="text" id="ctMonto" placeholder="546.410 PEN"></div>
+          <div class="field"><label>Fuente de financiamiento</label><input type="text" id="ctFuente" placeholder="Fondos Públicos"></div>
+          <div class="field"><label>CUI</label><input type="text" id="ctCui" placeholder="2540340"></div>
+          <div class="field"><label>OCDS / ID proceso</label><input type="text" id="ctOcds" placeholder="ocds-dgv273-seacev3-2023-1161-31"></div>
+          <div class="field"><label>Enlace oficial</label><input type="text" id="ctLink" placeholder="https://..."></div>
+          <div class="field"><label>Inicia</label><input type="text" id="ctFechaIni" placeholder="25-05-2023"></div>
+          <div class="field"><label>Cierra</label><input type="text" id="ctFechaFin" placeholder="25-05-2023"></div>
+          <div class="field"><label>Convocatoria (inicia — finaliza)</label><input type="text" id="ctConv" placeholder="25-05-2023 — 25-05-2023"></div>
+          <div class="field"><label>Consultas (inicia — finaliza)</label><input type="text" id="ctCons" placeholder="26-05-2023 — 01-06-2023"></div>
+        </div>
+
+        <div class="card">
+          <h3>4) Cronograma del proceso (tú lo defines)</h3>
+          <div class="hint">Agrega etapas en orden. Marca “Completada” para que salga en verde en la web.</div>
+          <div id="ctCronoBuilder"></div>
+          <div class="actions-bar" style="margin-top:10px">
+            <button type="button" class="btn btn-outline" id="ctAddStep">+ Etapa</button>
+            <button type="button" class="btn btn-outline" id="ctCronoPreset">Plantilla estándar</button>
+          </div>
+        </div>
+
+        <div class="actions-bar">
+          <button type="button" class="btn" id="ctSaveBtn">Publicar contratación</button>
+          <button type="button" class="btn btn-outline" id="ctResetBtn">Limpiar formulario</button>
+        </div>
+
+        <div class="list-simple" style="margin-top:16px">
           <h3 style="font-size:13px;margin-bottom:8px;color:var(--verde-oscuro)">Publicadas</h3>
           <table>
             <thead><tr><th>Orden</th><th>Título</th><th>Etapa</th><th></th></tr></thead>
@@ -345,7 +392,6 @@ button,input,textarea,select{font-family:inherit}
           </table>
         </div>
       </div>
-
       <div id="view-aviso" style="display:none">
         <h2>Barra de avisos</h2>
         <div class="desc">Por ahora se guarda en este navegador. Las publicaciones ya van a Supabase.</div>
@@ -980,77 +1026,178 @@ window.deleteProy = async function (id) {
 
 
 
-/* —— Contrataciones SEACE paste —— */
+
+/* —— Contrataciones SEACE —— */
 let ctCacheAdmin = [];
-let ctParsed = null;
+let ctSteps = [];
+
+function ctResetForm() {
+  ['ctPaste','ctTitulo','ctNom','ctDesc','ctEstado','ctMonto','ctFuente','ctCui','ctOcds','ctLink','ctFechaIni','ctFechaFin','ctConv','ctCons'].forEach(function (id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('ctTipo').value = '';
+  document.getElementById('ctEtapa').value = '';
+  document.getElementById('ctCat').value = 'Obras';
+  ctSteps = [];
+  renderCronoBuilder();
+}
+
+function renderCronoBuilder() {
+  var box = document.getElementById('ctCronoBuilder');
+  if (!box) return;
+  if (!ctSteps.length) {
+    box.innerHTML = '<p style="font-size:12.5px;color:#5A6459">Sin etapas. Usa “Plantilla estándar” o “+ Etapa”.</p>';
+    return;
+  }
+  box.innerHTML = ctSteps.map(function (s, i) {
+    return '<div style="display:grid;grid-template-columns:40px 1fr 120px 90px 36px;gap:6px;align-items:center;margin-bottom:6px">' +
+      '<input type="number" data-i="'+i+'" data-k="n" value="'+(s.n||i+1)+'" style="width:100%;padding:6px;border:1px solid var(--borde);border-radius:6px">' +
+      '<input type="text" data-i="'+i+'" data-k="nombre" value="'+escapeHtml(s.nombre||'')+'" placeholder="Nombre etapa" style="width:100%;padding:6px;border:1px solid var(--borde);border-radius:6px">' +
+      '<input type="text" data-i="'+i+'" data-k="fecha" value="'+escapeHtml(s.fecha||'')+'" placeholder="25-05-23" style="width:100%;padding:6px;border:1px solid var(--borde);border-radius:6px">' +
+      '<label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" data-i="'+i+'" data-k="done" '+(s.done?'checked':'')+'> Hecha</label>' +
+      '<button type="button" class="chip-btn btn-sm" data-del-step="'+i+'">×</button></div>';
+  }).join('');
+  box.querySelectorAll('input').forEach(function (inp) {
+    inp.addEventListener('change', function () {
+      var i = +inp.getAttribute('data-i');
+      var k = inp.getAttribute('data-k');
+      if (!ctSteps[i]) return;
+      if (k === 'done') ctSteps[i].done = inp.checked;
+      else if (k === 'n') ctSteps[i].n = parseInt(inp.value, 10) || (i + 1);
+      else ctSteps[i][k] = inp.value.trim();
+    });
+  });
+  box.querySelectorAll('[data-del-step]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      ctSteps.splice(+btn.getAttribute('data-del-step'), 1);
+      renderCronoBuilder();
+    });
+  });
+}
+
+document.getElementById('ctAddStep')?.addEventListener('click', function () {
+  ctSteps.push({ n: ctSteps.length + 1, nombre: '', fecha: '', done: false });
+  renderCronoBuilder();
+});
+document.getElementById('ctCronoPreset')?.addEventListener('click', function () {
+  ctSteps = [
+    { n: 1, nombre: 'Publicación', fecha: '', done: false },
+    { n: 2, nombre: 'Fin Consultas', fecha: '', done: false },
+    { n: 3, nombre: 'Cierre', fecha: '', done: false },
+    { n: 5, nombre: 'Adjudicación', fecha: '', done: false },
+    { n: 6, nombre: 'Firma', fecha: '', done: false },
+    { n: 7, nombre: 'Contrato', fecha: '', done: false }
+  ];
+  renderCronoBuilder();
+});
+document.getElementById('ctResetBtn')?.addEventListener('click', ctResetForm);
+
+function valueAfterLabel(lines, labelRe) {
+  for (var i = 0; i < lines.length; i++) {
+    if (labelRe.test(lines[i])) {
+      // same line after :
+      var same = lines[i].replace(labelRe, '').replace(/^:\s*/, '').trim();
+      if (same) return same;
+      // next non-empty line that is not another label
+      for (var j = i + 1; j < lines.length; j++) {
+        if (!lines[j]) continue;
+        if (/^(Descripci[oó]n|Estado|Fuente|Monto|Nomenclatura|Tipo|Categor[ií]a|Convocatoria|Consultas|Planificaci|Cronograma)\s*:?\s*$/i.test(lines[j])) break;
+        if (/^(Descripci[oó]n|Estado|Fuente|Monto|Nomenclatura|Tipo|Categor[ií]a)\s*:/i.test(lines[j])) break;
+        return lines[j].trim();
+      }
+    }
+  }
+  return '';
+}
 
 function parseContratacionText(text) {
   text = String(text || '').replace(/\r/g, '');
+  var lines = text.split('\n').map(function (l) { return l.trim(); });
   var out = {
-    titulo: '', nomenclatura: '', descripcion: '', tipo: '', categoria: '',
-    estado: '', monto: '', fuente_financiamiento: '', cui: '',
+    titulo: '', nomenclatura: '', descripcion: '', tipo: '', categoria: 'Obras',
+    estado: '', etapa: '', monto: '', fuente_financiamiento: '', cui: '', ocds_id: '',
     convocatoria_inicio: '', convocatoria_fin: '', consultas_inicio: '', consultas_fin: '',
     cronograma: []
   };
-  // Cronograma: número, nombre etapa, fecha
-  var stages = ['Publicación','Fin Consultas','Cierre','Adjudicación','Firma','Contrato'];
-  var lines = text.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
-  var i = 0;
-  while (i < lines.length) {
-    var ln = lines[i];
-    // step number alone
-    if (/^\d+$/.test(ln) && i + 2 < lines.length) {
-      var nombre = lines[i + 1];
-      var fecha = lines[i + 2];
-      if (/publicaci|consulta|cierre|adjudic|firma|contrato/i.test(nombre) && /\d{2}[-/]\d{2}/.test(fecha)) {
-        out.cronograma.push({ n: parseInt(ln, 10), nombre: nombre, fecha: fecha });
-        i += 3;
-        continue;
-      }
+
+  // Cronograma triples
+  for (var i = 0; i < lines.length - 2; i++) {
+    if (/^\d+$/.test(lines[i]) && /publicaci|consulta|cierre|adjudic|firma|contrato/i.test(lines[i+1]) && /\d{1,2}[-/]\d{1,2}/.test(lines[i+2])) {
+      out.cronograma.push({ n: parseInt(lines[i],10), nombre: lines[i+1], fecha: lines[i+2], done: false });
+      i += 2;
     }
-    i++;
   }
-  function afterLabel(label) {
-    var re = new RegExp(label + '\\s*:?\\s*', 'i');
-    var idx = text.search(re);
-    if (idx < 0) return '';
-    var rest = text.slice(idx).replace(re, '');
-    var next = rest.search(/\n\s*(Descripci[oó]n|Estado|Fuente|Monto|Nomenclatura|Tipo|Categor[ií]a|Convocatoria|Consultas|Planificaci|Cronograma)\s*:/i);
-    var chunk = next >= 0 ? rest.slice(0, next) : rest.slice(0, 400);
-    return chunk.replace(/\n+/g, ' ').trim();
+
+  // Field blocks: only take next line after clean label line
+  out.nomenclatura = valueAfterLabel(lines, /^Nomenclatura\s*:?\s*$/i) || valueAfterLabel(lines, /^Nomenclatura\s*:/i);
+  out.tipo = valueAfterLabel(lines, /^Tipo\s*:?\s*$/i) || valueAfterLabel(lines, /^Tipo\s*:/i);
+  out.categoria = valueAfterLabel(lines, /^Categor[ií]a\s*:?\s*$/i) || valueAfterLabel(lines, /^Categor[ií]a\s*:/i) || 'Obras';
+  out.estado = valueAfterLabel(lines, /^Estado\s*:?\s*$/i) || valueAfterLabel(lines, /^Estado\s*:/i);
+  out.fuente_financiamiento = valueAfterLabel(lines, /^Fuente(?: de)? financiamiento\s*:?\s*$/i) || valueAfterLabel(lines, /^Fuente(?: de)? financiamiento\s*:/i);
+  out.monto = valueAfterLabel(lines, /^Monto\s*:?\s*$/i) || valueAfterLabel(lines, /^Monto\s*:/i);
+  // Prefer convocatoria description (longer CONTRATACIÓN...)
+  var descs = [];
+  for (var d = 0; d < lines.length; d++) {
+    if (/^Descripci[oó]n\s*:?\s*$/i.test(lines[d]) || /^Descripci[oó]n\s*:/i.test(lines[d])) {
+      var val = lines[d].replace(/^Descripci[oó]n\s*:?\s*/i, '').trim();
+      if (!val && lines[d+1] && !/^(Estado|Fuente|Monto|Nomenclatura|Tipo|Categor)/i.test(lines[d+1])) val = lines[d+1];
+      if (val) descs.push(val);
+    }
   }
-  out.descripcion = afterLabel('Descripci[oó]n') || out.descripcion;
-  // Prefer longer description under Convocatoria if present twice - take longest block
-  var descMatches = text.split(/Descripci[oó]n\s*:/i).slice(1).map(function (p) {
-    return p.split(/\n\s*(Estado|Fuente|Monto|Nomenclatura|Tipo|Categor)/i)[0].replace(/\n/g, ' ').trim();
-  }).filter(Boolean);
-  if (descMatches.length) {
-    out.descripcion = descMatches.sort(function (a, b) { return b.length - a.length; })[0];
+  if (descs.length) {
+    out.descripcion = descs.sort(function (a,b){ return b.length - a.length; })[0];
   }
-  out.estado = afterLabel('Estado');
-  out.fuente_financiamiento = afterLabel('Fuente(?: de)? financiamiento');
-  out.monto = afterLabel('Monto');
-  out.nomenclatura = afterLabel('Nomenclatura');
-  out.tipo = afterLabel('Tipo');
-  out.categoria = afterLabel('Categor[ií]a');
-  var conv = afterLabel('Convocatoria');
-  if (/inicia/i.test(conv)) {
-    var m = conv.match(/Inicia\s*([\d\-./]+)\s*[-–]\s*Finaliza\s*([\d\-./]+)/i);
-    if (m) { out.convocatoria_inicio = m[1]; out.convocatoria_fin = m[2]; }
-  }
-  var cons = afterLabel('Consultas');
-  if (/inicia/i.test(cons)) {
-    var m2 = cons.match(/Inicia\s*([\d\-./]+)\s*[-–]\s*Finaliza\s*([\d\-./]+)/i);
-    if (m2) { out.consultas_inicio = m2[1]; out.consultas_fin = m2[2]; }
+  // Convocatoria / Consultas ranges on following line
+  for (var k = 0; k < lines.length; k++) {
+    if (/^Convocatoria\s*:?\s*$/i.test(lines[k]) && lines[k+1] && /Inicia/i.test(lines[k+1])) {
+      var m = lines[k+1].match(/Inicia\s*([\d\-./]+)\s*[-–]\s*Finaliza\s*([\d\-./]+)/i);
+      if (m) { out.convocatoria_inicio = m[1]; out.convocatoria_fin = m[2]; }
+    }
+    if (/^Consultas\s*:?\s*$/i.test(lines[k]) && lines[k+1] && /Inicia/i.test(lines[k+1])) {
+      var m2 = lines[k+1].match(/Inicia\s*([\d\-./]+)\s*[-–]\s*Finaliza\s*([\d\-./]+)/i);
+      if (m2) { out.consultas_inicio = m2[1]; out.consultas_fin = m2[2]; }
+    }
   }
   var cui = text.match(/CUI\s*N[º°o]?\s*([\d]+)/i);
   if (cui) out.cui = cui[1];
-  // título: primera línea larga o nombre de obra
-  if (out.descripcion) {
-    out.titulo = out.descripcion.slice(0, 120) + (out.descripcion.length > 120 ? '…' : '');
+  var ocds = text.match(/ocds-[\w\-]+/i);
+  if (ocds) out.ocds_id = ocds[0];
+
+  // clean tipo: only known process types
+  if (out.tipo && !/adjudic|licitaci|comparaci|contrataci|directa|precios/i.test(out.tipo)) {
+    // wrong capture
+    if (/adjudicaci[oó]n simplificada/i.test(text)) out.tipo = 'Adjudicación Simplificada';
+    else if (/licitaci[oó]n p[uú]blica abreviada/i.test(text)) out.tipo = 'Licitación Pública Abreviada';
+    else out.tipo = '';
   }
-  if (!out.categoria && /obra/i.test(text)) out.categoria = 'Obras';
-  if (!out.etapa && out.estado) out.etapa = out.estado;
+  // clean estado - single word-ish
+  if (out.estado) {
+    out.estado = out.estado.split(/\s{2,}|Fuente|Monto|Descrip/i)[0].trim();
+    if (/contrato/i.test(out.estado)) out.estado = 'Contrato';
+    else if (/adjudic/i.test(out.estado)) out.estado = 'Adjudicación';
+    else if (/convoc/i.test(out.estado)) out.estado = 'Convocatoria';
+  }
+  out.etapa = out.estado || '';
+  // monto only first money-like token
+  if (out.monto) {
+    var mm = out.monto.match(/[\d.]+(?:\s*PEN)?/i);
+    if (mm) out.monto = mm[0].replace(/\s+/g,' ').trim();
+    if (!/PEN/i.test(out.monto) && /PEN/i.test(text)) out.monto += ' PEN';
+  }
+  // title short from description
+  if (out.descripcion) {
+    var t = out.descripcion.replace(/^CONTRATACI[OÓ]N[^:]*:\s*/i, '').replace(/[¿?]/g, '').trim();
+    out.titulo = t.slice(0, 90) + (t.length > 90 ? '…' : '');
+  }
+  // mark cronograma done up to estado
+  var order = ['publicacion','fin consultas','cierre','adjudicacion','firma','contrato'];
+  var est = (out.estado || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'');
+  var estIdx = order.findIndex(function (x) { return est.indexOf(x) >= 0; });
+  out.cronograma.forEach(function (s) {
+    var n = (s.nombre || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'');
+    var idx = order.findIndex(function (x) { return n.indexOf(x) >= 0; });
+    s.done = estIdx >= 0 && idx >= 0 && idx <= estIdx;
+  });
   return out;
 }
 
@@ -1058,55 +1205,73 @@ function fillCtForm(p) {
   document.getElementById('ctTitulo').value = p.titulo || '';
   document.getElementById('ctNom').value = p.nomenclatura || '';
   document.getElementById('ctDesc').value = p.descripcion || '';
-  document.getElementById('ctTipo').value = p.tipo || '';
+  var tipoEl = document.getElementById('ctTipo');
+  if (p.tipo) {
+    var found = false;
+    for (var i = 0; i < tipoEl.options.length; i++) {
+      if (tipoEl.options[i].value === p.tipo || tipoEl.options[i].text === p.tipo) { tipoEl.value = tipoEl.options[i].value || tipoEl.options[i].text; found = true; break; }
+    }
+    if (!found) { tipoEl.value = 'Otro'; }
+  }
   document.getElementById('ctCat').value = p.categoria || 'Obras';
-  document.getElementById('ctEstado').value = p.estado || p.etapa || '';
+  document.getElementById('ctEtapa').value = p.etapa || p.estado || '';
+  document.getElementById('ctEstado').value = p.estado || '';
   document.getElementById('ctMonto').value = p.monto || '';
   document.getElementById('ctFuente').value = p.fuente_financiamiento || '';
   document.getElementById('ctCui').value = p.cui || '';
+  document.getElementById('ctOcds').value = p.ocds_id || '';
   document.getElementById('ctConv').value = [p.convocatoria_inicio, p.convocatoria_fin].filter(Boolean).join(' — ');
   document.getElementById('ctCons').value = [p.consultas_inicio, p.consultas_fin].filter(Boolean).join(' — ');
-  document.getElementById('ctCrono').value = JSON.stringify(p.cronograma || [], null, 2);
-  ctParsed = p;
+  document.getElementById('ctFechaIni').value = p.convocatoria_inicio || '';
+  document.getElementById('ctFechaFin').value = p.convocatoria_fin || '';
+  ctSteps = (p.cronograma || []).map(function (s) {
+    return { n: s.n, nombre: s.nombre, fecha: s.fecha, done: !!s.done };
+  });
+  renderCronoBuilder();
 }
 
 document.getElementById('ctParseBtn')?.addEventListener('click', function () {
   var p = parseContratacionText(document.getElementById('ctPaste').value || '');
   fillCtForm(p);
-  showToast((p.cronograma || []).length ? 'Detectado: ' + p.cronograma.length + ' etapas' : 'Texto analizado (revisa campos)');
+  showToast('Campos rellenados — revisa etiquetas y cronograma');
 });
 document.getElementById('ctPaste')?.addEventListener('paste', function () {
   setTimeout(function () {
     var p = parseContratacionText(document.getElementById('ctPaste').value || '');
-    if (p.descripcion || (p.cronograma && p.cronograma.length)) {
+    if (p.descripcion || p.nomenclatura || (p.cronograma && p.cronograma.length)) {
       fillCtForm(p);
-      showToast('Ficha detectada');
+      showToast('Ficha detectada — revisa antes de publicar');
     }
-  }, 20);
+  }, 30);
 });
 
 document.getElementById('ctSaveBtn')?.addEventListener('click', async function () {
   var titulo = document.getElementById('ctTitulo').value.trim();
   if (!titulo) { showToast('Falta título', true); return; }
-  var crono = [];
-  try { crono = JSON.parse(document.getElementById('ctCrono').value || '[]'); } catch (e) { showToast('JSON cronograma inválido', true); return; }
-  var conv = document.getElementById('ctConv').value.split(/[—\-]/);
-  var cons = document.getElementById('ctCons').value.split(/[—\-]/);
+  var conv = document.getElementById('ctConv').value.split(/[—]/);
+  var cons = document.getElementById('ctCons').value.split(/[—]/);
   var minOrder = ctCacheAdmin.length ? Math.min.apply(null, ctCacheAdmin.map(function (x) { return x.sort_order ?? 0; })) : 0;
+  var tipoVal = document.getElementById('ctTipo').value;
+  if (tipoVal === 'Otro') tipoVal = document.getElementById('ctTipo').value;
   var payload = {
     titulo: titulo,
     nomenclatura: document.getElementById('ctNom').value.trim() || null,
     descripcion: document.getElementById('ctDesc').value.trim() || null,
     descripcion_corta: (document.getElementById('ctDesc').value.trim() || titulo).slice(0, 280),
-    tipo: document.getElementById('ctTipo').value.trim() || null,
+    tipo: document.getElementById('ctTipo').value || null,
     categoria: document.getElementById('ctCat').value || null,
-    etapa: document.getElementById('ctEstado').value.trim() || null,
-    estado: document.getElementById('ctEstado').value.trim() || null,
+    etapa: document.getElementById('ctEtapa').value || document.getElementById('ctEstado').value.trim() || null,
+    estado: document.getElementById('ctEstado').value.trim() || document.getElementById('ctEtapa').value || null,
     monto: document.getElementById('ctMonto').value.trim() || null,
     fuente_financiamiento: document.getElementById('ctFuente').value.trim() || null,
     cui: document.getElementById('ctCui').value.trim() || null,
+    ocds_id: document.getElementById('ctOcds').value.trim() || null,
     link_url: document.getElementById('ctLink').value.trim() || null,
-    cronograma: crono,
+    fecha_inicio: document.getElementById('ctFechaIni').value.trim() || null,
+    fecha_cierre: document.getElementById('ctFechaFin').value.trim() || null,
+    cronograma: ctSteps.map(function (s, i) {
+      return { n: s.n || i + 1, nombre: s.nombre || '', fecha: s.fecha || '', done: !!s.done };
+    }),
     convocatoria_inicio: (conv[0] || '').trim() || null,
     convocatoria_fin: (conv[1] || '').trim() || null,
     consultas_inicio: (cons[0] || '').trim() || null,
@@ -1118,7 +1283,7 @@ document.getElementById('ctSaveBtn')?.addEventListener('click', async function (
   var res = await sb.from('contrataciones').insert(payload);
   if (res.error) { showToast(res.error.message, true); return; }
   showToast('Contratación publicada');
-  document.getElementById('ctPaste').value = '';
+  ctResetForm();
   await loadContrataciones();
 });
 
@@ -1140,7 +1305,7 @@ async function loadContrataciones() {
       '<button class="chip-btn btn-sm" onclick="moveCt(\''+c.id+'\',-1)">↑</button>' +
       '<button class="chip-btn btn-sm" onclick="moveCt(\''+c.id+'\',1)">↓</button></div></td>' +
       '<td>'+escapeHtml(c.titulo)+'</td>' +
-      '<td>'+escapeHtml(c.estado||c.etapa||'—')+'</td>' +
+      '<td>'+escapeHtml(c.etapa||c.estado||'—')+'</td>' +
       '<td><button class="chip-btn btn-sm" onclick="deleteCt(\''+c.id+'\')">Eliminar</button></td></tr>';
   }).join('');
 }
@@ -1160,6 +1325,7 @@ window.deleteCt = async function (id) {
   var res = await sb.from('contrataciones').delete().eq('id', id);
   if (res.error) showToast(res.error.message, true); else { showToast('Eliminada'); loadContrataciones(); }
 };
+
 
 updatePreview();
 </script>
