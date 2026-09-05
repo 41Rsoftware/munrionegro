@@ -708,73 +708,36 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 
 
 
+
 <script>
 (function () {
-  function goAdmin() { window.location.href = 'admin.html'; }
   var openBtn = document.getElementById('adminOpenBtn');
   var overlay = document.getElementById('adminAuthOverlay');
-  if (openBtn && !overlay) {
-    openBtn.addEventListener('click', goAdmin);
-    return;
+  if (openBtn) {
+    openBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      // Ir directo al panel (login correo+clave de Supabase)
+      window.location.href = 'admin.html';
+    });
   }
-  if (!openBtn || !overlay) return;
-
+  // Si alguien abre el modal viejo, también redirigir
+  var submitBtn = document.getElementById('adminSubmitBtn');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', function () {
+      window.location.href = 'admin.html';
+    });
+  }
   var closeBtn = document.getElementById('adminCloseBtn');
   var cancelBtn = document.getElementById('adminCancelBtn');
-  var submitBtn = document.getElementById('adminSubmitBtn');
-  var passInput = document.getElementById('adminPassInput');
-  var errBox = document.getElementById('adminAuthError');
-
-  function openModal() {
-    if (errBox) errBox.classList.remove('show');
-    if (passInput) passInput.value = '';
-    overlay.classList.add('open');
-    setTimeout(function () { if (passInput) passInput.focus(); }, 40);
-  }
-  function closeModal() {
-    overlay.classList.remove('open');
-    if (passInput) passInput.value = '';
-    if (errBox) errBox.classList.remove('show');
-  }
-
-  openBtn.addEventListener('click', function (e) {
-    e.preventDefault();
-    openModal();
-  });
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
-  overlay.addEventListener('click', function (e) {
-    if (e.target && e.target.getAttribute('data-close') === '1') closeModal();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
-  });
-  if (passInput) passInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && submitBtn) submitBtn.click();
-  });
-
-  // Acceso: redirige a admin.html (login real con Supabase ahí)
-  if (submitBtn) submitBtn.addEventListener('click', function () {
-    var password = passInput ? passInput.value : '';
-    if (errBox) errBox.classList.remove('show');
-    if (!password) {
-      if (errBox) { errBox.textContent = 'Ingrese la contraseña o continúe al panel.'; errBox.classList.add('show'); }
-      return;
-    }
-    // El login definitivo es correo+clave en admin.html (Supabase)
-    sessionStorage.setItem('rn_admin_gate', '1');
-    window.location.href = 'admin.html';
-  });
+  if (closeBtn && overlay) closeBtn.addEventListener('click', function () { overlay.classList.remove('open'); });
+  if (cancelBtn && overlay) cancelBtn.addEventListener('click', function () { overlay.classList.remove('open'); });
 })();
 </script>
-
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
 <script>
 (function () {
-  const SUPABASE_URL = 'https://iioxuxnbkgrwswufvlzo.supabase.co';
-  const SUPABASE_ANON = 'sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK';
-
+  var SUPABASE_URL = 'https://iioxuxnbkgrwswufvlzo.supabase.co';
+  var SUPABASE_ANON = 'sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK';
   function esc(s) {
     var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
   }
@@ -789,17 +752,9 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
     return 'comunicado';
   }
 
-  try {
-    var ann = JSON.parse(localStorage.getItem('rn_announcement') || '{}');
-    var annBar = document.getElementById('rnAnnBar');
-    if (annBar && ann.enabled && ann.text) {
-      annBar.innerHTML = ann.link ? ('<a href="' + esc(ann.link) + '">' + esc(ann.text) + '</a>') : esc(ann.text);
-      annBar.classList.add('open');
-    }
-  } catch (e) {}
-
   function renderPosts(posts) {
-    posts = (posts || []).slice().sort(function (a, b) {
+    posts = posts || [];
+    posts.sort(function (a, b) {
       var oa = a.sort_order != null ? a.sort_order : 0;
       var ob = b.sort_order != null ? b.sort_order : 0;
       if (oa !== ob) return oa - ob;
@@ -821,13 +776,19 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 
     var listBox = document.getElementById('rnDynamicPosts');
     if (!listBox) return;
+    if (!normal.length && !featured.length) {
+      listBox.innerHTML = '';
+      return;
+    }
     if (!normal.length) { listBox.innerHTML = ''; return; }
     var cards = normal.map(function (p) {
       var imgs = p.images || [];
       var imgHtml = '';
       if (imgs.length === 1) imgHtml = '<img class="fb-img" src="' + imgs[0] + '" alt="">';
       else if (imgs.length > 1) {
-        imgHtml = '<div class="fb-imgs two">' + imgs.slice(0, 2).map(function (u) { return '<img src="' + u + '" alt="">'; }).join('') + '</div>';
+        imgHtml = '<div class="fb-imgs two">' + imgs.slice(0, 2).map(function (u) {
+          return '<img src="' + u + '" alt="">';
+        }).join('') + '</div>';
       }
       var cta = p.button_text
         ? '<a class="fb-cta" href="' + esc(p.link_url || '#') + '" target="_blank" rel="noopener">' + esc(p.button_text) + '</a>'
@@ -840,31 +801,33 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
         '<span class="name">Municipalidad Distrital de Río Negro - Oficial</span>' +
         '<span class="cat-pill ' + cat + '">' + esc(p.category || 'comunicado') + '</span></div>' +
         '<div class="time">' + esc(when) + '</div></div></div>' +
-        '<div class="fb-text"><strong>' + esc(p.title) + '</strong>' + (p.body ? '
-' + esc(p.body) : '') + '</div>' +
+        '<div class="fb-text"><strong>' + esc(p.title) + '</strong>' + (p.body ? '\\n' + esc(p.body) : '') + '</div>' +
         cta + imgHtml + '</article>';
     }).join('');
     listBox.innerHTML = '<h2 class="fb-feed-title">Comunicados y noticias</h2>' + cards;
   }
 
-  function bootPosts() {
-    if (!window.supabase) {
-      console.error('Supabase CDN no cargó');
+  function boot() {
+    if (!window.supabase || !window.supabase.createClient) {
+      console.error('Supabase CDN no disponible');
       return;
     }
     var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
     sb.from('publicaciones').select('*').eq('status', 'published').then(function (res) {
       if (res.error) {
-        console.warn('Supabase:', res.error.message);
+        console.warn('Supabase:', res.error);
         return;
       }
       renderPosts(res.data || []);
+    }).catch(function (err) {
+      console.warn(err);
     });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootPosts);
-  else bootPosts();
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 </script>
-
 </body>
+
 </html>
