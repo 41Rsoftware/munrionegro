@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyectos de inversión | Municipalidad Distrital de Río Negro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#14311F;--borde:#DCE3DD;--txt:#1D2620;--muted:#5A6459}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;color:var(--txt);background:#f6f7f6;font-size:14px}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px}
+h1{font-size:22px;color:var(--verde);margin-bottom:8px}
+.sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+.card{background:#fff;border:1px solid var(--borde);border-radius:10px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--borde);text-align:left}
+th{background:#EEF3EE;color:var(--verde);font-size:11px;text-transform:uppercase}
+.bar{height:8px;background:#e8ece8;border-radius:99px;overflow:hidden;min-width:80px}
+.bar>i{display:block;height:100%;background:#2A6B47}
+a{color:var(--verde)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p><a href="index.html">← Inicio</a></p>
+  <h1>Proyectos de inversión</h1>
+  <p class="sub">Datos cargados por la municipalidad (referencia MEF / SIAF). Última actualización según carga en el panel.</p>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th><th>SNIP</th><th>Proyecto</th><th>Costo</th><th>PIM</th><th>Devengado</th><th>Avance</th>
+        </tr>
+      </thead>
+      <tbody id="tb"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script>
+const sb = supabase.createClient('https://iioxuxnbkgrwswufvlzo.supabase.co','sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK');
+function esc(s){const d=document.createElement('div');d.textContent=s??'';return d.innerHTML}
+function money(n){if(n==null)return '—';return Number(n).toLocaleString('es-PE')}
+sb.from('proyectos_inversion').select('*').eq('status','published').order('sort_order').order('created_at',{ascending:false})
+.then(({data,error})=>{
+  const tb=document.getElementById('tb');
+  if(error){tb.innerHTML='<tr><td colspan="7" class="empty">'+esc(error.message)+'</td></tr>';return}
+  if(!data||!data.length){tb.innerHTML='<tr><td colspan="7" class="empty">Aún no hay proyectos publicados.</td></tr>';return}
+  tb.innerHTML=data.map(p=>{
+    const pct=p.avance_pct!=null?Math.max(0,Math.min(100,Number(p.avance_pct))):0;
+    return '<tr><td>'+esc(p.codigo_unico||'—')+'</td><td>'+esc(p.codigo_snip||'—')+'</td><td>'+esc(p.titulo)+'</td><td>'+money(p.costo)+'</td><td>'+money(p.pim)+'</td><td>'+money(p.devengado)+'</td><td><div class="bar"><i style="width:'+pct+'%"></i></div> '+(p.avance_pct!=null?pct+'%':'—')+'</td></tr>';
+  }).join('');
+});
+</script>
+</body>
+</html>
