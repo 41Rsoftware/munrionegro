@@ -6,7 +6,7 @@
 <title>Administrador | Municipalidad Distrital de Río Negro</title>
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
 <style>
 :root{--verde-oscuro:#14311F;--verde-medio:#2A6B47;--verde-tenue:#EEF3EE;--rojo:#B23A2E;--borde:#DCE3DD;--texto:#1D2620;--texto-secundario:#5A6459;}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -243,10 +243,35 @@ button,input,textarea,select{font-family:inherit}
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="rnStatusToast" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:99999;max-width:min(440px,92vw);background:#14311F;color:#fff;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.45;box-shadow:0 8px 30px rgba(0,0,0,.25);text-align:center"></div>
 <script>
 const SUPABASE_URL = 'https://iioxuxnbkgrwswufvlzo.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+function showConnStatus(msg, isError) {
+  var el = document.getElementById('rnStatusToast');
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.background = isError ? '#B23A2E' : '#14311F';
+  el.textContent = msg;
+  if (!isError) setTimeout(function () { el.style.display = 'none'; }, 6000);
+}
+async function checkSupabaseConnection() {
+  try {
+    if (!window.supabase || !window.supabase.createClient) {
+      showConnStatus('No se pudo cargar Supabase. Revisa tu conexión o recarga la página.', true);
+      return;
+    }
+    const { error } = await sb.from('publicaciones').select('id').limit(1);
+    if (error) {
+      showConnStatus('Falla de conexión con Supabase: ' + error.message, true);
+    }
+  } catch (e) {
+    showConnStatus('No se detectó conexión con la base de datos.', true);
+  }
+}
+
 
 let uploadedUrls = [];
 let postsCache = [];
@@ -295,11 +320,19 @@ async function enterAdmin(user) {
   document.getElementById('whoEmail').textContent = (user && user.email) || 'Administrador';
   setDefaultDate();
   loadAnnUI();
+  await checkSupabaseConnection();
   await loadPosts();
 }
 
+if (!window.supabase || !window.supabase.createClient) {
+  document.addEventListener('DOMContentLoaded', function () {
+    showConnStatus('No se pudo cargar Supabase. Revisa tu conexión o recarga la página.', true);
+  });
+}
 sb.auth.getSession().then(({ data }) => {
   if (data.session) enterAdmin(data.session.user);
+}).catch(function () {
+  showConnStatus('No se pudo verificar la sesión con Supabase.', true);
 });
 
 function setDefaultDate() {
