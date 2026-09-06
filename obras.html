@@ -140,6 +140,7 @@ th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-t
     <button type="button" class="active" data-tab="contrataciones">Contrataciones</button>
     <button type="button" data-tab="obras">Obras destacadas</button>
     <button type="button" data-tab="proyectos">Proyectos MEF / SIAF</button>
+    <button type="button" data-tab="infobras">INFOBRAS</button>
   </div>
 
   <div id="panel-contrataciones">
@@ -164,6 +165,26 @@ th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-t
       <table>
         <thead><tr><th>Código</th><th>SNIP</th><th>Proyecto</th><th>Costo</th><th>PIM</th><th>Devengado</th><th>Avance</th></tr></thead>
         <tbody id="proyBody"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-infobras" style="display:none">
+    <p class="sub">Obras registradas en INFOBRAS (avance físico y estado de ejecución).</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código INFOBRAS</th>
+            <th>Nombre de la obra</th>
+            <th>Monto exp. técnico</th>
+            <th>Modalidad</th>
+            <th>Fecha inicio</th>
+            <th>Avance físico</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="ibBody"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -196,6 +217,8 @@ th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-t
       document.getElementById('panel-contrataciones').style.display = tab === 'contrataciones' ? 'block' : 'none';
       document.getElementById('panel-obras').style.display = tab === 'obras' ? 'block' : 'none';
       document.getElementById('panel-proyectos').style.display = tab === 'proyectos' ? 'block' : 'none';
+      var pib = document.getElementById('panel-infobras');
+      if (pib) pib.style.display = tab === 'infobras' ? 'block' : 'none';
       if (tab === 'contrataciones') {
         document.getElementById('ctList').classList.remove('hide');
         document.getElementById('ctDetail').classList.remove('open');
@@ -345,6 +368,21 @@ th{background:var(--verde-tenue);color:var(--verde-oscuro);font-size:11px;text-t
         var img = o.image_url ? '<div class="img"><img src="'+o.image_url+'" alt=""></div>' : '<div class="img"></div>';
         var btn = o.link_url ? '<a class="btn-dark" href="'+esc(o.link_url)+'" target="_blank" rel="noopener">'+(esc(o.button_text||'Ver detalle'))+'</a>' : '';
         return '<article class="obra-card">'+img+'<div class="body"><div class="tag">'+esc(o.tag||'Obra')+'</div><h3>'+esc(o.title)+'</h3><p>'+esc(o.body||'')+'</p>'+btn+'</div></article>';
+      }).join('');
+    });
+
+  sb.from('infobras').select('*').eq('status','published').order('sort_order').order('created_at',{ascending:false})
+    .then(function (res) {
+      var tb = document.getElementById('ibBody');
+      if (!tb) return;
+      if (res.error || !(res.data||[]).length) {
+        tb.innerHTML = '<tr><td colspan="7" class="empty">Aún no hay obras INFOBRAS. Cárgalas en el admin.</td></tr>';
+        return;
+      }
+      tb.innerHTML = res.data.map(function (p) {
+        var pct = p.avance_fisico != null ? Math.max(0, Math.min(100, Number(p.avance_fisico))) : null;
+        var bar = pct != null ? '<div class="bar"><i style="width:'+pct+'%"></i></div> '+pct+'%' : '—';
+        return '<tr><td>'+esc(p.codigo_infobras||'—')+'</td><td>'+esc(p.nombre)+'</td><td>'+esc(p.monto||'—')+'</td><td>'+esc(p.modalidad||'—')+'</td><td>'+esc(p.fecha_inicio||'—')+'</td><td>'+bar+'</td><td>'+esc(p.estado||'—')+'</td></tr>';
       }).join('');
     });
 
