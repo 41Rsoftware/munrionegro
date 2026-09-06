@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convocatorias CAS | Municipalidad Distrital de Río Negro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#14311F;--verde2:#2A6B47;--borde:#DCE3DD;--txt:#1D2620;--muted:#5A6459;--azul:#1a56db}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;color:var(--txt);background:#f7f8f7;font-size:14px;line-height:1.5}
+a{color:var(--azul);text-decoration:none}
+.wrap{max-width:900px;margin:0 auto;padding:24px 16px}
+.top{font-size:13px;margin-bottom:16px}
+.top a{color:var(--verde2);font-weight:600}
+h1{font-size:clamp(22px,4vw,28px);color:var(--verde);margin-bottom:8px}
+.sub{color:var(--muted);margin-bottom:20px;font-size:13.5px}
+.card{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:18px 20px;margin-bottom:14px}
+.card h2{font-size:16px;color:var(--azul);text-decoration:underline;margin-bottom:10px;line-height:1.35}
+.card .resumen{color:#444;font-size:13.5px;margin-bottom:12px}
+.card .meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.card .fecha{color:var(--muted);font-size:13px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--azul);color:var(--azul);background:#fff;padding:8px 14px;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer}
+.btn:hover{background:#eef3ff}
+.btn-primary{background:var(--azul);color:#fff;border-color:var(--azul)}
+.btn-primary:hover{background:#1445b0}
+.link-more{font-weight:600;font-size:13px;color:var(--azul)}
+#detail{display:none}
+#detail.open{display:block}
+#list.hide{display:none}
+.back{border:none;background:none;color:var(--verde2);font-weight:600;cursor:pointer;margin-bottom:14px;font-size:13px}
+.detail-title{font-size:clamp(22px,4vw,30px);line-height:1.25;margin:8px 0 10px;color:#111}
+.badge{display:inline-block;background:#eef2f7;color:#334;font-size:11px;font-weight:600;padding:4px 10px;border-radius:4px;margin-bottom:8px}
+.pdf-box{border:1px solid var(--borde);border-radius:10px;padding:16px;max-width:280px;margin-top:20px;background:#fff}
+.pdf-box .name{font-weight:600;font-size:13px;margin-bottom:4px}
+.pdf-box .size{font-size:12px;color:var(--muted);margin-bottom:12px}
+.empty{text-align:center;padding:40px;color:var(--muted);border:1px dashed var(--borde);border-radius:10px;background:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="index.html">← Inicio</a> · <a href="municipalidad.html">Municipalidad</a></div>
+  <div id="list">
+    <h1>Convocatorias CAS</h1>
+    <p class="sub">Procesos de selección CAS, resoluciones y resultados. Descarga los documentos o lee más detalles.</p>
+    <div id="casList"><div class="empty">Cargando…</div></div>
+  </div>
+  <div id="detail">
+    <button type="button" class="back" id="casBack">← Volver al listado</button>
+    <div id="casDetailBody"></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  var sb = supabase.createClient('https://iioxuxnbkgrwswufvlzo.supabase.co','sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK');
+  function esc(s){var d=document.createElement('div');d.textContent=s??'';return d.innerHTML}
+  var cache=[];
+  function renderList(rows){
+    var box=document.getElementById('casList');
+    if(!rows.length){box.innerHTML='<div class="empty">Aún no hay convocatorias publicadas.</div>';return}
+    box.innerHTML=rows.map(function(c){
+      return '<article class="card">'+
+        '<h2>'+esc(c.titulo)+'</h2>'+
+        (c.resumen?'<div class="resumen">'+esc(c.resumen)+'</div>':'')+
+        '<div class="meta">'+
+          '<span class="fecha">'+esc(c.fecha||'')+'</span>'+
+          '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+
+            (c.pdf_url?'<a class="btn" href="'+esc(c.pdf_url)+'" target="_blank" rel="noopener">↓ Descargar</a>':'')+
+            '<a href="#" class="link-more" data-id="'+c.id+'">Leer más ›</a>'+
+          '</div></div></article>';
+    }).join('');
+    box.querySelectorAll('[data-id]').forEach(function(a){
+      a.addEventListener('click',function(e){e.preventDefault();openDetail(a.getAttribute('data-id'));});
+    });
+  }
+  function openDetail(id){
+    var c=cache.find(function(x){return x.id===id});
+    if(!c)return;
+    var pdfName=c.pdf_nombre||'Documento PDF';
+    document.getElementById('casDetailBody').innerHTML=
+      '<div class="badge">'+esc(c.categoria||'Convocatoria de trabajo')+'</div>'+
+      '<h1 class="detail-title">'+esc(c.titulo)+'</h1>'+
+      '<p style="color:#5A6459;margin-bottom:8px">'+esc(c.fecha||'')+'</p>'+
+      (c.resumen?'<p style="margin-bottom:12px">'+esc(c.resumen)+'</p>':'')+
+      (c.cuerpo?'<div style="margin:16px 0;white-space:pre-wrap">'+esc(c.cuerpo)+'</div>':'')+
+      (c.pdf_url?'<div class="pdf-box"><div class="name">'+esc(pdfName)+'</div><div class="size">PDF</div><a class="btn btn-primary" style="width:100%;justify-content:center" href="'+esc(c.pdf_url)+'" target="_blank" rel="noopener">↓ Descargar</a></div>':'');
+    document.getElementById('list').classList.add('hide');
+    document.getElementById('detail').classList.add('open');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.getElementById('casBack').onclick=function(){
+    document.getElementById('detail').classList.remove('open');
+    document.getElementById('list').classList.remove('hide');
+  };
+  sb.from('convocatorias_cas').select('*').eq('status','published').order('sort_order').order('created_at',{ascending:false})
+    .then(function(res){
+      if(res.error){document.getElementById('casList').innerHTML='<div class="empty">'+esc(res.error.message)+'</div>';return}
+      cache=res.data||[];
+      renderList(cache);
+    });
+})();
+</script>
+</body>
+</html>

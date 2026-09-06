@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presupuesto | Transparencia | Municipalidad Distrital de Río Negro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#14311F;--verde2:#2A6B47;--borde:#DCE3DD;--txt:#1D2620;--muted:#5A6459;--azul:#1a56db}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;color:var(--txt);background:#f7f8f7;font-size:14px;line-height:1.5}
+a{color:var(--azul);text-decoration:none}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px}
+.top{font-size:13px;margin-bottom:16px}
+.top a{color:var(--verde2);font-weight:600}
+h1{font-size:clamp(22px,4vw,28px);color:var(--verde);margin-bottom:8px}
+.lead{color:var(--muted);margin-bottom:20px;max-width:640px}
+.card{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:16px 18px;margin-bottom:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.card h2{font-size:15px;color:var(--verde);margin-bottom:4px}
+.card p{font-size:13px;color:var(--muted)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11px;background:#eef3ee;color:var(--verde);padding:2px 8px;border-radius:99px;font-weight:600}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;font-weight:600;font-size:12.5px;border:1px solid var(--borde);background:#fff;color:var(--txt)}
+.btn.pdf{border-color:#b91c1c;color:#b91c1c}
+.btn.excel{border-color:#15803d;color:#15803d}
+.btn.ext{border-color:var(--azul);color:var(--azul)}
+.empty{text-align:center;padding:40px;color:var(--muted);border:1px dashed var(--borde);border-radius:10px;background:#fff}
+.icon-box{text-align:center;margin-bottom:20px}
+.icon-box .ico{width:72px;height:72px;margin:0 auto 8px;border-radius:12px;background:linear-gradient(180deg,#3b82f6,#60a5fa);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="index.html">← Inicio</a> · Transparencia</div>
+  <div class="icon-box"><div class="ico">S/</div><div style="font-weight:700;color:var(--azul)">Presupuesto</div></div>
+  <h1>Presupuesto</h1>
+  <p class="lead">Documentos sobre ingresos y gastos, realizados y por realizar; préstamos; y datos relacionados con las actividades bancarias, contables y económicas de la entidad.</p>
+  <div id="list"><div class="empty">Cargando…</div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  var sb=supabase.createClient('https://iioxuxnbkgrwswufvlzo.supabase.co','sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK');
+  function esc(s){var d=document.createElement('div');d.textContent=s??'';return d.innerHTML}
+  sb.from('presupuesto_docs').select('*').eq('status','published').order('sort_order').order('created_at',{ascending:false})
+    .then(function(res){
+      var box=document.getElementById('list');
+      if(res.error){box.innerHTML='<div class="empty">'+esc(res.error.message)+'</div>';return}
+      var rows=res.data||[];
+      if(!rows.length){box.innerHTML='<div class="empty">Aún no hay documentos de presupuesto. Publícalos desde el admin.</div>';return}
+      box.innerHTML=rows.map(function(d){
+        return '<article class="card"><div><h2>'+esc(d.titulo)+'</h2>'+
+          (d.descripcion?'<p>'+esc(d.descripcion)+'</p>':'')+
+          '<div class="tags">'+
+            (d.anio?'<span class="tag">'+d.anio+'</span>':'')+
+            (d.trimestre?'<span class="tag">Trim. '+esc(d.trimestre)+'</span>':'')+
+            (d.tipo?'<span class="tag">'+esc(d.tipo)+'</span>':'')+
+          '</div></div><div class="btns">'+
+            (d.pdf_url?'<a class="btn pdf" href="'+esc(d.pdf_url)+'" target="_blank" rel="noopener">PDF</a>':'')+
+            (d.excel_url?'<a class="btn excel" href="'+esc(d.excel_url)+'" target="_blank" rel="noopener">Excel</a>':'')+
+            (d.link_externo?'<a class="btn ext" href="'+esc(d.link_externo)+'" target="_blank" rel="noopener">Consulta en línea</a>':'')+
+          '</div></article>';
+      }).join('');
+    });
+})();
+</script>
+</body>
+</html>
