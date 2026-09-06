@@ -113,6 +113,7 @@ button,input,textarea,select{font-family:inherit}
       <a href="#" data-view="obras"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>Obras</a>
       <a href="#" data-view="proyectos"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Proyectos MEF</a>
       <a href="#" data-view="contrataciones"><svg viewBox="0 0 24 24"><path d="M9 5h12M9 12h12M9 19h12M4 5h.01M4 12h.01M4 19h.01"/></svg>Contrataciones</a>
+      <a href="#" data-view="infobras"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg>INFOBRAS</a>
     </aside>
     <main class="main">
       <div id="view-publicaciones">
@@ -398,6 +399,58 @@ button,input,textarea,select{font-family:inherit}
           </table>
         </div>
       </div>
+      
+      <div id="view-infobras" style="display:none">
+        <h2>Obras INFOBRAS</h2>
+        <div class="desc">
+          Carga masiva como Proyectos MEF. Copia filas desde INFOBRAS o Excel (código, nombre, monto, modalidad, fecha inicio, avance %, estado).
+          Columnas separadas por <strong>tabulador</strong> o <code>|</code>. Los <code>---</code> se ignoran.
+        </div>
+        <div class="card">
+          <h3>Carga masiva</h3>
+          <div class="hint">
+            Orden: <strong>Código INFOBRAS · Nombre · Monto · Modalidad · Fecha inicio · Avance % · Estado</strong><br>
+            Ejemplo: <code>562373&#9;MEJORAMIENTO DEL SERVICIO...&#9;S/. 671,009.70&#9;Contrata&#9;22/07/2026&#9;45.12&#9;En Ejecución</code>
+          </div>
+          <div class="field"><label>Pegar filas</label>
+            <textarea id="ibPaste" rows="8" placeholder="562373	MEJORAMIENTO DEL SERVICIO...	S/. 671,009.70	Contrata	22/07/2026	45.12	En Ejecución"></textarea>
+          </div>
+          <div class="actions-bar">
+            <button type="button" class="btn btn-outline" id="ibPreviewBtn">Vista previa</button>
+            <button type="button" class="btn" id="ibPublishBtn">Publicar lote</button>
+            <button type="button" class="btn btn-outline" id="ibAddRowBtn">+ Fila vacía</button>
+          </div>
+        </div>
+        <div class="card" style="overflow-x:auto">
+          <h3>Vista previa (tipo Excel)</h3>
+          <div style="overflow-x:auto;border:1px solid #c5d0c5;border-radius:6px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px">
+              <thead>
+                <tr style="background:#dce8dc">
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5">#</th>
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5">Cód. INFOBRAS</th>
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5">Nombre de la obra</th>
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5">Monto</th>
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5">Modalidad</th>
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5">Fecha inicio</th>
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5">Avance %</th>
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5">Estado</th>
+                  <th style="padding:8px 6px;border:1px solid #c5d0c5"></th>
+                </tr>
+              </thead>
+              <tbody id="ibPreviewBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="list-simple" style="margin-top:14px">
+          <h3 style="font-size:13px;margin-bottom:8px;color:var(--verde-oscuro)">Publicados en la nube</h3>
+          <table>
+            <thead><tr><th>Orden</th><th>Código</th><th>Nombre</th><th>Avance</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="ibTable"><tr><td colspan="6" style="text-align:center;padding:14px;color:#5A6459">—</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
       <div id="view-aviso" style="display:none">
         <h2>Barra de avisos</h2>
         <div class="desc">Por ahora se guarda en este navegador. Las publicaciones ya van a Supabase.</div>
@@ -520,6 +573,7 @@ document.querySelectorAll('.sidebar a').forEach(a => {
     const v = a.dataset.view;
     document.getElementById('view-publicaciones').style.display = v === 'publicaciones' ? 'block' : 'none';
     const vct = document.getElementById('view-contrataciones'); if (vct && v !== 'contrataciones') vct.style.display = 'none';
+    const vib2 = document.getElementById('view-infobras'); if (vib2 && v !== 'infobras') vib2.style.display = 'none';
     document.getElementById('view-aviso').style.display = v === 'aviso' ? 'block' : 'none';
     const vs = document.getElementById('view-serenazgo'); if (vs) vs.style.display = v === 'serenazgo' ? 'block' : 'none';
     const vo = document.getElementById('view-obras'); if (vo) vo.style.display = v === 'obras' ? 'block' : 'none';
@@ -530,6 +584,10 @@ document.querySelectorAll('.sidebar a').forEach(a => {
     const vc = document.getElementById('view-contrataciones');
     if (vc) vc.style.display = v === 'contrataciones' ? 'block' : 'none';
     if (v === 'contrataciones') loadContrataciones();
+    const vib = document.getElementById('view-infobras');
+    if (vib) vib.style.display = v === 'infobras' ? 'block' : 'none';
+    if (v === 'infobras') { renderIbPreview(); loadInfobras(); }
+    if (vib && v !== 'infobras') vib.style.display = 'none';
   });
 });
 
