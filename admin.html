@@ -1442,6 +1442,217 @@ window.deleteCt = async function (id) {
 };
 
 
+
+/* —— INFOBRAS carga masiva —— */
+let ibBatch = [];
+let ibCache = [];
+
+function parseIbNum(x) {
+  if (x == null || x === '') return null;
+  var n = String(x).replace(/%/g, '').replace(/,/g, '').replace(/\s/g, '');
+  var v = parseFloat(n);
+  return isNaN(v) ? null : v;
+}
+function isIbJunkLine(line) {
+  var t = (line || '').trim();
+  if (!t) return true;
+  if (/^[\s|:\-]+$/.test(t)) return true;
+  if (/^c[oó]digo\s*infobras/i.test(t)) return true;
+  if (/nombre de la obra/i.test(t) && /modalidad/i.test(t)) return true;
+  if (/^ver\s+(ficha|detalle)/i.test(t)) return true;
+  if (/^ejecuci[oó]n$/i.test(t)) return true;
+  // markdown separator only
+  if (/^\|[\s\-:|]+\|$/.test(t)) return true;
+  return false;
+}
+function parseIbLineSmart(line) {
+  line = String(line || '').replace(/\r/g, '').trim();
+  if (isIbJunkLine(line)) return null;
+
+  if (line.indexOf('|') >= 0) {
+    var cells = line.split('|').map(function (s) { return s.trim(); });
+    if (cells.length && cells[0] === '') cells.shift();
+    if (cells.length && cells[cells.length - 1] === '') cells.pop();
+    if (!cells.length) return null;
+    if (cells.every(function (c) { return !c || /^[\-:]+$/.test(c); })) return null;
+    if (/c[oó]digo|nombre/i.test(cells[0] || '') && !/^\d{5,}/.test(cells[0] || '')) return null;
+
+    var cod = (cells[0] || '').replace(/\s+/g, '');
+    var nombre = (cells[1] || '').replace(/\s+/g, ' ').trim();
+    var monto = (cells[2] || '').replace(/\s+/g, ' ').trim();
+    var mod = (cells[3] || '').trim();
+    var fecha = (cells[4] || '').trim();
+    var av = String(cells[5] || '').replace(/%/g, '').trim();
+    var est = (cells[6] || '').replace(/ver\s+ficha.*/i, '').trim();
+    if (!/^\d{4,}/.test(cod)) {
+      var cm = line.match(/\b(\d{5,7})\b/);
+      if (cm) cod = cm[1];
+    }
+    if (!nombre) return null;
+    return {
+      codigo_infobras: cod || null,
+      nombre: nombre,
+      monto: monto || null,
+      modalidad: mod || null,
+      fecha_inicio: fecha || null,
+      avance_fisico: parseIbNum(av),
+      estado: est || null
+    };
+  }
+
+  if (line.indexOf('\t') >= 0) {
+    return parseIbLineSmart('| ' + line.split('\t').map(function (s) { return s.trim(); }).join(' | ') + ' |');
+  }
+
+  var codeM = line.match(/^(\d{5,7})\b/);
+  if (!codeM) return null;
+  var cod2 = codeM[1];
+  var rest = line.slice(codeM[0].length).trim();
+  rest = rest.replace(/\s*Ver\s+Ficha\s+de\s+Obra\s*/gi, ' ').replace(/\s+/g, ' ').trim();
+  var montoM = rest.match(/S\/\.?\s*[\d,]+(?:\.\d+)?/i);
+  var fechaM = rest.match(/\b(\d{2}\/\d{2}\/\d{4}|\d{2}-\d{2}-\d{4})\b/);
+  var avM = rest.match(/(\d+[.,]?\d*)\s*%/);
+  var estM = rest.match(/\b(En Ejecuci[oó]n|Sin Ejecuci[oó]n|Paralizada|Culminada)\b/i);
+  var modM = rest.match(/\b(Contrata|Administraci[oó]n\s+Directa|N[uú]cleo\s+Ejecutor)\b/i);
+  var nombre2 = rest;
+  if (montoM) nombre2 = nombre2.slice(0, rest.indexOf(montoM[0])).trim();
+  if (!nombre2) return null;
+  return {
+    codigo_infobras: cod2,
+    nombre: nombre2,
+    monto: montoM ? montoM[0].replace(/\s+/g, ' ') : null,
+    modalidad: modM ? modM[1] : null,
+    fecha_inicio: fechaM ? fechaM[1] : null,
+    avance_fisico: avM ? parseIbNum(avM[1]) : null,
+    estado: estM ? estM[1] : null
+  };
+}
+function parseIbPaste(text) {
+  var rows = [];
+  var seen = {};
+  String(text || '').split(/\r?\n/).forEach(function (line) {
+    var row = parseIbLineSmart(line);
+    if (!row || !row.nombre) return;
+    var key = (row.codigo_infobras || '') + '|' + row.nombre.slice(0, 50);
+    if (seen[key]) return;
+    seen[key] = 1;
+    rows.push(row);
+  });
+  return rows;
+}
+function renderIbPreview() {
+  var tbody = document.getElementById('ibPreviewBody');
+  if (!tbody) return;
+  if (!ibBatch.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:14px;text-align:center;color:#5A6459;border:1px solid #c5d0c5">Pega filas (con | o desde INFOBRAS) y pulsa Vista previa</td></tr>';
+    return;
+  }
+  tbody.innerHTML = ibBatch.map(function (r, i) {
+    function cell(k, w) {
+      var val = r[k]; if (val == null) val = '';
+      return '<td style="padding:0;border:1px solid #c5d0c5"><input data-i="'+i+'" data-k="'+k+'" value="'+escapeHtml(String(val))+'" style="width:'+(w||'100%')+';border:none;padding:6px 5px;font-size:12px;background:'+(i%2?'#f7faf7':'#fff')+'"></td>';
+    }
+    return '<tr><td style="padding:6px;border:1px solid #c5d0c5;text-align:center;background:#eef3ee">'+(i+1)+'</td>' +
+      cell('codigo_infobras','90px') + cell('nombre','100%') + cell('monto','110px') +
+      cell('modalidad','90px') + cell('fecha_inicio','100px') + cell('avance_fisico','70px') + cell('estado','110px') +
+      '<td style="border:1px solid #c5d0c5;text-align:center"><button type="button" class="chip-btn btn-sm" data-ib-del="'+i+'">×</button></td></tr>';
+  }).join('');
+  tbody.querySelectorAll('input').forEach(function (inp) {
+    inp.addEventListener('change', function () {
+      var i = +inp.getAttribute('data-i'), k = inp.getAttribute('data-k');
+      if (!ibBatch[i]) return;
+      if (k === 'avance_fisico') ibBatch[i][k] = parseIbNum(inp.value);
+      else ibBatch[i][k] = inp.value.trim() || null;
+    });
+  });
+  tbody.querySelectorAll('[data-ib-del]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      ibBatch.splice(+btn.getAttribute('data-ib-del'), 1);
+      renderIbPreview();
+    });
+  });
+}
+function runIbPreview() {
+  var raw = (document.getElementById('ibPaste') || {}).value || '';
+  ibBatch = parseIbPaste(raw);
+  renderIbPreview();
+  if (ibBatch.length) showToast(ibBatch.length + ' obras detectadas');
+  else showToast('No se detectaron filas. Revisa el formato (usa | entre columnas)', true);
+}
+document.getElementById('ibPreviewBtn')?.addEventListener('click', runIbPreview);
+document.getElementById('ibPaste')?.addEventListener('paste', function () { setTimeout(runIbPreview, 20); });
+document.getElementById('ibAddRowBtn')?.addEventListener('click', function () {
+  ibBatch.push({ codigo_infobras: null, nombre: '', monto: null, modalidad: null, fecha_inicio: null, avance_fisico: null, estado: null });
+  renderIbPreview();
+});
+document.getElementById('ibPublishBtn')?.addEventListener('click', async function () {
+  if (!ibBatch.length) { showToast('No hay filas — pulsa Vista previa primero', true); return; }
+  var minOrder = ibCache.length ? Math.min.apply(null, ibCache.map(function (p) { return p.sort_order ?? 0; })) : 0;
+  var payload = ibBatch.filter(function (r) { return r.nombre && String(r.nombre).trim(); }).map(function (r, idx) {
+    return {
+      codigo_infobras: r.codigo_infobras,
+      nombre: String(r.nombre).trim(),
+      monto: r.monto,
+      modalidad: r.modalidad,
+      fecha_inicio: r.fecha_inicio,
+      avance_fisico: r.avance_fisico,
+      estado: r.estado,
+      status: 'published',
+      sort_order: minOrder - (ibBatch.length - idx),
+      updated_at: new Date().toISOString()
+    };
+  });
+  if (!payload.length) { showToast('Faltan nombres', true); return; }
+  var res = await sb.from('infobras').insert(payload);
+  if (res.error) { showToast(res.error.message, true); return; }
+  showToast('Lote INFOBRAS: ' + payload.length + ' obras');
+  ibBatch = [];
+  if (document.getElementById('ibPaste')) document.getElementById('ibPaste').value = '';
+  renderIbPreview();
+  await loadInfobras();
+});
+async function loadInfobras() {
+  var res = await sb.from('infobras').select('*').order('sort_order').order('created_at', { ascending: false });
+  var tbody = document.getElementById('ibTable');
+  if (!tbody) return;
+  if (res.error) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#B23A2E;padding:12px">' + escapeHtml(res.error.message) + ' — ¿Ejecutaste supabase_infobras.sql?</td></tr>';
+    return;
+  }
+  ibCache = res.data || [];
+  if (!ibCache.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:14px;color:#5A6459">Ninguna obra</td></tr>';
+    return;
+  }
+  tbody.innerHTML = ibCache.map(function (p) {
+    return '<tr><td><div class="row-actions">' +
+      '<button class="chip-btn btn-sm" onclick="moveIb(\''+p.id+'\',-1)">↑</button>' +
+      '<button class="chip-btn btn-sm" onclick="moveIb(\''+p.id+'\',1)">↓</button></div></td>' +
+      '<td>'+escapeHtml(p.codigo_infobras||'—')+'</td>' +
+      '<td>'+escapeHtml(p.nombre)+'</td>' +
+      '<td>'+(p.avance_fisico!=null?p.avance_fisico+'%':'—')+'</td>' +
+      '<td>'+escapeHtml(p.estado||'—')+'</td>' +
+      '<td><button class="chip-btn btn-sm" onclick="deleteIb(\''+p.id+'\')">Eliminar</button></td></tr>';
+  }).join('');
+}
+window.moveIb = async function (id, dir) {
+  var posts = ibCache.slice().sort(function (a,b){ return (a.sort_order??0)-(b.sort_order??0); });
+  var i = posts.findIndex(function (p){ return p.id===id; });
+  var j = i + dir;
+  if (i < 0 || j < 0 || j >= posts.length) return;
+  var a = posts[i], b = posts[j];
+  await sb.from('infobras').update({ sort_order: b.sort_order ?? j }).eq('id', a.id);
+  await sb.from('infobras').update({ sort_order: a.sort_order ?? i }).eq('id', b.id);
+  showToast('Orden actualizado');
+  loadInfobras();
+};
+window.deleteIb = async function (id) {
+  if (!confirm('¿Eliminar?')) return;
+  var res = await sb.from('infobras').delete().eq('id', id);
+  if (res.error) showToast(res.error.message, true); else { showToast('Eliminada'); loadInfobras(); }
+};
+
+
 updatePreview();
 </script>
 </body>
