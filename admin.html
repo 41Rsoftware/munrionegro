@@ -114,6 +114,8 @@ button,input,textarea,select{font-family:inherit}
       <a href="#" data-view="proyectos"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Proyectos MEF</a>
       <a href="#" data-view="contrataciones"><svg viewBox="0 0 24 24"><path d="M9 5h12M9 12h12M9 19h12M4 5h.01M4 12h.01M4 19h.01"/></svg>Contrataciones</a>
       <a href="#" data-view="infobras"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg>INFOBRAS</a>
+      <a href="#" data-view="cas"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 11h6"/></svg>Convocatorias CAS</a>
+      <a href="#" data-view="presupuesto"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Presupuesto</a>
     </aside>
     <main class="main">
       <div id="view-publicaciones">
@@ -451,6 +453,74 @@ button,input,textarea,select{font-family:inherit}
         </div>
       </div>
 
+      
+      <div id="view-cas" style="display:none">
+        <h2>Convocatorias CAS</h2>
+        <div class="desc">Listado público en <code>convocatorias-cas.html</code>. Título + resumen se ven antes de “Leer más”. El PDF se descarga desde el listado y el detalle.</div>
+        <div class="card">
+          <h3>Nueva / editar convocatoria</h3>
+          <input type="hidden" id="casEditId" value="">
+          <div class="field"><label>Título</label><input type="text" id="casTitulo" placeholder="Resolución de Gerencia Municipal N° 175-2026-GM/MDRN"></div>
+          <div class="field"><label>Resumen (se ve en el listado)</label><textarea id="casResumen" rows="3" placeholder="ARTÍCULO PRIMERO: APROBAR LAS BASES..."></textarea></div>
+          <div class="field"><label>Cuerpo / detalle (Leer más)</label><textarea id="casCuerpo" rows="4" placeholder="Texto ampliado opcional"></textarea></div>
+          <div class="field"><label>Fecha (texto)</label><input type="text" id="casFecha" placeholder="19 de agosto de 2026"></div>
+          <div class="field"><label>Categoría</label><input type="text" id="casCat" value="Convocatoria de trabajo"></div>
+          <div class="field"><label>PDF</label><input type="file" id="casPdf" accept="application/pdf,.pdf">
+            <div id="casPdfPrev" style="font-size:12px;margin-top:6px;color:#5A6459"></div>
+          </div>
+          <div class="field"><label>Nombre del archivo PDF</label><input type="text" id="casPdfName" placeholder="RESULTADO_FINA_CAS_2026.pdf"></div>
+          <div class="field"><label>URL del PDF (si ya lo subiste)</label><input type="text" id="casPdfUrl" placeholder="https://..."></div>
+          <div class="actions-bar">
+            <button type="button" class="btn" id="casSaveBtn">Publicar</button>
+            <button type="button" class="btn btn-outline" id="casResetBtn">Limpiar</button>
+          </div>
+        </div>
+        <div class="list-simple">
+          <table>
+            <thead><tr><th>Orden</th><th>Título</th><th>Fecha</th><th></th></tr></thead>
+            <tbody id="casTable"><tr><td colspan="4" style="text-align:center;padding:14px;color:#5A6459">—</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="view-presupuesto" style="display:none">
+        <h2>Presupuesto (Transparencia)</h2>
+        <div class="desc">Documentos de ingresos, gastos y ejecución presupuestal. Página pública: <code>presupuesto.html</code>.</div>
+        <div class="card">
+          <h3>Nuevo documento</h3>
+          <input type="hidden" id="preEditId" value="">
+          <div class="field"><label>Título</label><input type="text" id="preTitulo" placeholder="Ejecución presupuestal 2026 - Trimestre 2"></div>
+          <div class="field"><label>Descripción</label><textarea id="preDesc" rows="2" placeholder="Fuente de financiamiento / genérica de gastos..."></textarea></div>
+          <div class="field"><label>Año</label><input type="number" id="preAnio" value="2026" style="max-width:120px"></div>
+          <div class="field"><label>Trimestre</label>
+            <select id="preTrim"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+          </div>
+          <div class="field"><label>Tipo</label>
+            <select id="preTipo">
+              <option>Presupuesto</option>
+              <option>Fuente Financiamiento</option>
+              <option>Genérica Gastos</option>
+              <option>Genérica Ingresos</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="field"><label>PDF</label><input type="file" id="prePdf" accept="application/pdf,.pdf"><div id="prePdfPrev" style="font-size:12px;margin-top:6px;color:#5A6459"></div></div>
+          <div class="field"><label>URL PDF</label><input type="text" id="prePdfUrl"></div>
+          <div class="field"><label>URL Excel (opcional)</label><input type="text" id="preExcelUrl"></div>
+          <div class="field"><label>Link consulta en línea (MEF u otro)</label><input type="text" id="preLink" placeholder="https://..."></div>
+          <div class="actions-bar">
+            <button type="button" class="btn" id="preSaveBtn">Publicar</button>
+            <button type="button" class="btn btn-outline" id="preResetBtn">Limpiar</button>
+          </div>
+        </div>
+        <div class="list-simple">
+          <table>
+            <thead><tr><th>Orden</th><th>Título</th><th>Año</th><th></th></tr></thead>
+            <tbody id="preTable"><tr><td colspan="4" style="text-align:center;padding:14px;color:#5A6459">—</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
       <div id="view-aviso" style="display:none">
         <h2>Barra de avisos</h2>
         <div class="desc">Por ahora se guarda en este navegador. Las publicaciones ya van a Supabase.</div>
@@ -574,6 +644,8 @@ document.querySelectorAll('.sidebar a').forEach(a => {
     document.getElementById('view-publicaciones').style.display = v === 'publicaciones' ? 'block' : 'none';
     const vct = document.getElementById('view-contrataciones'); if (vct && v !== 'contrataciones') vct.style.display = 'none';
     const vib2 = document.getElementById('view-infobras'); if (vib2 && v !== 'infobras') vib2.style.display = 'none';
+    const vcas2 = document.getElementById('view-cas'); if (vcas2 && v !== 'cas') vcas2.style.display = 'none';
+    const vpre2 = document.getElementById('view-presupuesto'); if (vpre2 && v !== 'presupuesto') vpre2.style.display = 'none';
     document.getElementById('view-aviso').style.display = v === 'aviso' ? 'block' : 'none';
     const vs = document.getElementById('view-serenazgo'); if (vs) vs.style.display = v === 'serenazgo' ? 'block' : 'none';
     const vo = document.getElementById('view-obras'); if (vo) vo.style.display = v === 'obras' ? 'block' : 'none';
@@ -587,6 +659,12 @@ document.querySelectorAll('.sidebar a').forEach(a => {
     const vib = document.getElementById('view-infobras');
     if (vib) vib.style.display = v === 'infobras' ? 'block' : 'none';
     if (v === 'infobras') { renderIbPreview(); loadInfobras(); }
+    const vcas = document.getElementById('view-cas');
+    if (vcas) vcas.style.display = v === 'cas' ? 'block' : 'none';
+    if (v === 'cas') loadCas();
+    const vpre = document.getElementById('view-presupuesto');
+    if (vpre) vpre.style.display = v === 'presupuesto' ? 'block' : 'none';
+    if (v === 'presupuesto') loadPresupuesto();
     if (vib && v !== 'infobras') vib.style.display = 'none';
   });
 });
@@ -1650,6 +1728,234 @@ window.deleteIb = async function (id) {
   if (!confirm('¿Eliminar?')) return;
   var res = await sb.from('infobras').delete().eq('id', id);
   if (res.error) showToast(res.error.message, true); else { showToast('Eliminada'); loadInfobras(); }
+};
+
+
+
+/* —— CAS + Presupuesto —— */
+let casCache = [];
+let casPdfUrl = '';
+let preCache = [];
+let prePdfUrl = '';
+
+async function uploadPdf(file, folder) {
+  if (!file) return null;
+  const path = folder + '/' + Date.now() + '-' + file.name.replace(/[^\w.\-]+/g, '_');
+  const { error } = await sb.storage.from('media').upload(path, file, { upsert: true, contentType: 'application/pdf' });
+  if (error) throw error;
+  const { data } = sb.storage.from('media').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+document.getElementById('casPdf')?.addEventListener('change', async function (e) {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  try {
+    showToast('Subiendo PDF…');
+    casPdfUrl = await uploadPdf(f, 'cas');
+    document.getElementById('casPdfUrl').value = casPdfUrl;
+    document.getElementById('casPdfPrev').textContent = 'PDF listo: ' + f.name;
+    if (!document.getElementById('casPdfName').value) document.getElementById('casPdfName').value = f.name;
+    showToast('PDF subido');
+  } catch (err) { showToast(err.message || 'Error al subir PDF', true); }
+});
+
+function casReset() {
+  document.getElementById('casEditId').value = '';
+  ['casTitulo','casResumen','casCuerpo','casFecha','casPdfName','casPdfUrl'].forEach(function (id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('casCat').value = 'Convocatoria de trabajo';
+  document.getElementById('casPdfPrev').textContent = '';
+  casPdfUrl = '';
+  var pf = document.getElementById('casPdf'); if (pf) pf.value = '';
+}
+document.getElementById('casResetBtn')?.addEventListener('click', casReset);
+
+document.getElementById('casSaveBtn')?.addEventListener('click', async function () {
+  var titulo = document.getElementById('casTitulo').value.trim();
+  if (!titulo) { showToast('Falta título', true); return; }
+  var pdf = document.getElementById('casPdfUrl').value.trim() || casPdfUrl || null;
+  var id = document.getElementById('casEditId').value;
+  var minOrder = casCache.length ? Math.min.apply(null, casCache.map(function (x) { return x.sort_order ?? 0; })) : 0;
+  var payload = {
+    titulo: titulo,
+    resumen: document.getElementById('casResumen').value.trim() || null,
+    cuerpo: document.getElementById('casCuerpo').value.trim() || null,
+    fecha: document.getElementById('casFecha').value.trim() || null,
+    categoria: document.getElementById('casCat').value.trim() || 'Convocatoria de trabajo',
+    pdf_url: pdf,
+    pdf_nombre: document.getElementById('casPdfName').value.trim() || null,
+    status: 'published',
+    updated_at: new Date().toISOString()
+  };
+  var res;
+  if (id) res = await sb.from('convocatorias_cas').update(payload).eq('id', id);
+  else {
+    payload.sort_order = minOrder - 1;
+    res = await sb.from('convocatorias_cas').insert(payload);
+  }
+  if (res.error) { showToast(res.error.message, true); return; }
+  showToast(id ? 'Actualizado' : 'Convocatoria publicada');
+  casReset();
+  loadCas();
+});
+
+async function loadCas() {
+  var res = await sb.from('convocatorias_cas').select('*').order('sort_order').order('created_at', { ascending: false });
+  var tbody = document.getElementById('casTable');
+  if (!tbody) return;
+  if (res.error) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#B23A2E;padding:12px">' + escapeHtml(res.error.message) + '</td></tr>';
+    return;
+  }
+  casCache = res.data || [];
+  if (!casCache.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:14px;color:#5A6459">Ninguna</td></tr>';
+    return;
+  }
+  tbody.innerHTML = casCache.map(function (c) {
+    return '<tr><td><div class="row-actions">' +
+      '<button class="chip-btn btn-sm" onclick="moveCas(\''+c.id+'\',-1)">↑</button>' +
+      '<button class="chip-btn btn-sm" onclick="moveCas(\''+c.id+'\',1)">↓</button></div></td>' +
+      '<td>'+escapeHtml(c.titulo)+'</td><td>'+escapeHtml(c.fecha||'—')+'</td>' +
+      '<td><div class="row-actions">' +
+      '<button class="chip-btn btn-sm" onclick="editCas(\''+c.id+'\')">Editar</button>' +
+      '<button class="chip-btn btn-sm" onclick="deleteCas(\''+c.id+'\')">Eliminar</button></div></td></tr>';
+  }).join('');
+}
+window.editCas = function (id) {
+  var c = casCache.find(function (x) { return x.id === id; });
+  if (!c) return;
+  document.getElementById('casEditId').value = c.id;
+  document.getElementById('casTitulo').value = c.titulo || '';
+  document.getElementById('casResumen').value = c.resumen || '';
+  document.getElementById('casCuerpo').value = c.cuerpo || '';
+  document.getElementById('casFecha').value = c.fecha || '';
+  document.getElementById('casCat').value = c.categoria || 'Convocatoria de trabajo';
+  document.getElementById('casPdfUrl').value = c.pdf_url || '';
+  document.getElementById('casPdfName').value = c.pdf_nombre || '';
+  casPdfUrl = c.pdf_url || '';
+  document.getElementById('casPdfPrev').textContent = c.pdf_url ? 'PDF actual cargado' : '';
+  showToast('Editando convocatoria');
+};
+window.moveCas = async function (id, dir) {
+  var posts = casCache.slice().sort(function (a,b){ return (a.sort_order??0)-(b.sort_order??0); });
+  var i = posts.findIndex(function (p){ return p.id===id; });
+  var j = i + dir;
+  if (i < 0 || j < 0 || j >= posts.length) return;
+  await sb.from('convocatorias_cas').update({ sort_order: posts[j].sort_order ?? j }).eq('id', posts[i].id);
+  await sb.from('convocatorias_cas').update({ sort_order: posts[i].sort_order ?? i }).eq('id', posts[j].id);
+  loadCas();
+};
+window.deleteCas = async function (id) {
+  if (!confirm('¿Eliminar convocatoria?')) return;
+  var res = await sb.from('convocatorias_cas').delete().eq('id', id);
+  if (res.error) showToast(res.error.message, true); else { showToast('Eliminada'); loadCas(); }
+};
+
+document.getElementById('prePdf')?.addEventListener('change', async function (e) {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  try {
+    showToast('Subiendo PDF…');
+    prePdfUrl = await uploadPdf(f, 'presupuesto');
+    document.getElementById('prePdfUrl').value = prePdfUrl;
+    document.getElementById('prePdfPrev').textContent = 'PDF listo: ' + f.name;
+    showToast('PDF subido');
+  } catch (err) { showToast(err.message || 'Error al subir', true); }
+});
+function preReset() {
+  document.getElementById('preEditId').value = '';
+  document.getElementById('preTitulo').value = '';
+  document.getElementById('preDesc').value = '';
+  document.getElementById('preAnio').value = '2026';
+  document.getElementById('preTrim').value = '';
+  document.getElementById('preTipo').value = 'Presupuesto';
+  document.getElementById('prePdfUrl').value = '';
+  document.getElementById('preExcelUrl').value = '';
+  document.getElementById('preLink').value = '';
+  document.getElementById('prePdfPrev').textContent = '';
+  prePdfUrl = '';
+  var pf = document.getElementById('prePdf'); if (pf) pf.value = '';
+}
+document.getElementById('preResetBtn')?.addEventListener('click', preReset);
+document.getElementById('preSaveBtn')?.addEventListener('click', async function () {
+  var titulo = document.getElementById('preTitulo').value.trim();
+  if (!titulo) { showToast('Falta título', true); return; }
+  var id = document.getElementById('preEditId').value;
+  var minOrder = preCache.length ? Math.min.apply(null, preCache.map(function (x) { return x.sort_order ?? 0; })) : 0;
+  var payload = {
+    titulo: titulo,
+    descripcion: document.getElementById('preDesc').value.trim() || null,
+    anio: parseInt(document.getElementById('preAnio').value, 10) || null,
+    trimestre: document.getElementById('preTrim').value || null,
+    tipo: document.getElementById('preTipo').value || 'Presupuesto',
+    pdf_url: document.getElementById('prePdfUrl').value.trim() || prePdfUrl || null,
+    excel_url: document.getElementById('preExcelUrl').value.trim() || null,
+    link_externo: document.getElementById('preLink').value.trim() || null,
+    status: 'published',
+    updated_at: new Date().toISOString()
+  };
+  var res;
+  if (id) res = await sb.from('presupuesto_docs').update(payload).eq('id', id);
+  else { payload.sort_order = minOrder - 1; res = await sb.from('presupuesto_docs').insert(payload); }
+  if (res.error) { showToast(res.error.message, true); return; }
+  showToast(id ? 'Actualizado' : 'Documento publicado');
+  preReset();
+  loadPresupuesto();
+});
+async function loadPresupuesto() {
+  var res = await sb.from('presupuesto_docs').select('*').order('sort_order').order('created_at', { ascending: false });
+  var tbody = document.getElementById('preTable');
+  if (!tbody) return;
+  if (res.error) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#B23A2E;padding:12px">' + escapeHtml(res.error.message) + '</td></tr>';
+    return;
+  }
+  preCache = res.data || [];
+  if (!preCache.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:14px;color:#5A6459">Ninguno</td></tr>';
+    return;
+  }
+  tbody.innerHTML = preCache.map(function (d) {
+    return '<tr><td><div class="row-actions">' +
+      '<button class="chip-btn btn-sm" onclick="movePre(\''+d.id+'\',-1)">↑</button>' +
+      '<button class="chip-btn btn-sm" onclick="movePre(\''+d.id+'\',1)">↓</button></div></td>' +
+      '<td>'+escapeHtml(d.titulo)+'</td><td>'+(d.anio||'—')+'</td>' +
+      '<td><div class="row-actions">' +
+      '<button class="chip-btn btn-sm" onclick="editPre(\''+d.id+'\')">Editar</button>' +
+      '<button class="chip-btn btn-sm" onclick="deletePre(\''+d.id+'\')">Eliminar</button></div></td></tr>';
+  }).join('');
+}
+window.editPre = function (id) {
+  var d = preCache.find(function (x) { return x.id === id; });
+  if (!d) return;
+  document.getElementById('preEditId').value = d.id;
+  document.getElementById('preTitulo').value = d.titulo || '';
+  document.getElementById('preDesc').value = d.descripcion || '';
+  document.getElementById('preAnio').value = d.anio || 2026;
+  document.getElementById('preTrim').value = d.trimestre || '';
+  document.getElementById('preTipo').value = d.tipo || 'Presupuesto';
+  document.getElementById('prePdfUrl').value = d.pdf_url || '';
+  document.getElementById('preExcelUrl').value = d.excel_url || '';
+  document.getElementById('preLink').value = d.link_externo || '';
+  prePdfUrl = d.pdf_url || '';
+  showToast('Editando documento');
+};
+window.movePre = async function (id, dir) {
+  var posts = preCache.slice().sort(function (a,b){ return (a.sort_order??0)-(b.sort_order??0); });
+  var i = posts.findIndex(function (p){ return p.id===id; });
+  var j = i + dir;
+  if (i < 0 || j < 0 || j >= posts.length) return;
+  await sb.from('presupuesto_docs').update({ sort_order: posts[j].sort_order ?? j }).eq('id', posts[i].id);
+  await sb.from('presupuesto_docs').update({ sort_order: posts[i].sort_order ?? i }).eq('id', posts[j].id);
+  loadPresupuesto();
+};
+window.deletePre = async function (id) {
+  if (!confirm('¿Eliminar?')) return;
+  var res = await sb.from('presupuesto_docs').delete().eq('id', id);
+  if (res.error) showToast(res.error.message, true); else { showToast('Eliminado'); loadPresupuesto(); }
 };
 
 
