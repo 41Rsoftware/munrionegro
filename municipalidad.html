@@ -181,6 +181,24 @@ ul{list-style:none;}
 .stat-box{background:#fff; padding:18px; text-align:center;}
 .stat-box .num{font-family:var(--font-display); font-size:21px; font-weight:700; color:var(--verde-oscuro);}
 .stat-box .lbl{font-size:11px; color:var(--texto-secundario); margin-top:4px;}
+/* convocatorias CAS */
+.cas-card{background:#fff; border:1px solid var(--borde); border-radius:6px; padding:18px 20px; margin-bottom:14px;}
+.cas-card h3{font-family:var(--font-body); font-size:16px; color:var(--azul); text-decoration:underline; margin-bottom:10px; line-height:1.35;}
+.cas-resumen{color:var(--texto-secundario); font-size:13.5px; margin-bottom:12px;}
+.cas-meta{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;}
+.cas-fecha{color:var(--texto-secundario); font-size:13px; font-family:var(--font-mono);}
+.cas-btn{display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--azul); color:var(--azul); background:#fff; padding:8px 14px; border-radius:4px; font-weight:600; font-size:13px; cursor:pointer; font-family:var(--font-body);}
+.cas-btn:hover{background:var(--azul-tenue);}
+.cas-btn-primary{background:var(--azul); color:#fff; border-color:var(--azul);}
+.cas-btn-primary:hover{background:#204a72;}
+.cas-link-more{font-weight:600; font-size:13px; color:var(--azul); font-family:var(--font-body);}
+.cas-detail-title{font-family:var(--font-display); font-size:clamp(21px,3.4vw,27px); line-height:1.25; margin:8px 0 10px; color:var(--verde-oscuro);}
+.cas-badge{display:inline-block; background:var(--azul-tenue); color:var(--azul); font-size:11px; font-weight:700; padding:4px 10px; border-radius:3px; margin-bottom:8px; text-transform:uppercase; letter-spacing:.02em;}
+.cas-pdf-box{border:1px solid var(--borde); border-radius:6px; padding:16px; max-width:280px; margin-top:20px; background:#fff;}
+.cas-pdf-name{font-weight:600; font-size:13px; margin-bottom:4px;}
+.cas-pdf-size{font-size:12px; color:var(--texto-secundario); margin-bottom:12px;}
+.cas-empty{text-align:center; padding:40px; color:var(--texto-secundario); border:1px dashed var(--borde); border-radius:6px; background:#fff;}
+.cas-back{border:none; background:none; color:var(--verde-medio); font-weight:600; cursor:pointer; margin-bottom:14px; font-size:13px; font-family:var(--font-body);}
 
 /* footer */
 footer{background:var(--verde-oscuro); color:#a9c5b4; padding:48px 0 22px;}
@@ -299,7 +317,7 @@ footer ul a:hover{color:#fff;}
         <div class="row"><span>Responsable Portal de Transparencia</span><span>Pedro Chihuán Cuadrado</span></div>
         <div class="row"><span>Responsable de acceso a la información</span><span>Deyvi G. Bravo Medrano</span></div>
         <div class="row"><span>TUPA</span><span>Publicado (gob.pe) — <a href="https://cdn.www.gob.pe/uploads/document/file/3630193/TUPA%202019.pdf.pdf?v=1663189677" target="_blank" rel="noopener" style="color:var(--verde-medio);">descargar PDF</a></span></div>
-        <div class="row" id="convocatorias"><span>Convocatoria CAS vigente</span><span>41 plazas (2026)</span></div>
+        <div class="row"><span>Convocatoria CAS vigente</span><span id="cas-count">41 plazas (2026)</span></div>
       </div>
     </div>
     <div class="empty-state" style="margin-top:1px;" id="organigrama">
@@ -308,6 +326,26 @@ footer ul a:hover{color:#fff;}
     </div>
   </div>
 </section>
+
+<section class="section" id="convocatorias" style="background:var(--verde-tenue); border-top:1px solid var(--borde); border-bottom:1px solid var(--borde);">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Recursos Humanos</div>
+      <h2>Convocatorias CAS</h2>
+      <p class="section-sub">Procesos de selección CAS, resoluciones y resultados. Descarga los documentos o lee más detalles.</p>
+    </div>
+
+    <div id="cas-list-wrap">
+      <div id="cas-list"><div class="cas-empty">Cargando…</div></div>
+    </div>
+
+    <div id="cas-detail" style="display:none">
+      <button type="button" class="cas-back" id="cas-back">← Volver al listado</button>
+      <div id="cas-detail-body"></div>
+    </div>
+  </div>
+</section>
+
 <footer id="contacto-footer">
   <div class="container">
     <div class="footer-grid">
@@ -356,5 +394,81 @@ footer ul a:hover{color:#fff;}
     </div>
   </div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  var sb = supabase.createClient('https://iioxuxnbkgrwswufvlzo.supabase.co','sb_publishable_dbwy0bFCp77UNF7pOagy_Q_a3ONZTxK');
+  function esc(s){var d=document.createElement('div');d.textContent=s??'';return d.innerHTML}
+  var cache=[];
+
+  function renderList(rows){
+    var box=document.getElementById('cas-list');
+    if(!box) return;
+    if(!rows.length){box.innerHTML='<div class="cas-empty">Aún no hay convocatorias publicadas.</div>';return}
+    box.innerHTML=rows.map(function(c){
+      return '<article class="cas-card">'+
+        '<h3>'+esc(c.titulo)+'</h3>'+
+        (c.resumen?'<div class="cas-resumen">'+esc(c.resumen)+'</div>':'')+
+        '<div class="cas-meta">'+
+          '<span class="cas-fecha">'+esc(c.fecha||'')+'</span>'+
+          '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+
+            (c.pdf_url?'<a class="cas-btn" href="'+esc(c.pdf_url)+'" target="_blank" rel="noopener">↓ Descargar</a>':'')+
+            '<a href="#" class="cas-link-more" data-id="'+c.id+'">Leer más ›</a>'+
+          '</div>'+
+        '</div>'+
+      '</article>';
+    }).join('');
+    box.querySelectorAll('[data-id]').forEach(function(a){
+      a.addEventListener('click',function(e){e.preventDefault();openDetail(a.getAttribute('data-id'));});
+    });
+  }
+
+  function openDetail(id){
+    var c=cache.find(function(x){return x.id===id});
+    if(!c)return;
+    var pdfName=c.pdf_nombre||'Documento PDF';
+    document.getElementById('cas-detail-body').innerHTML=
+      '<div class="cas-badge">'+esc(c.categoria||'Convocatoria de trabajo')+'</div>'+
+      '<h1 class="cas-detail-title">'+esc(c.titulo)+'</h1>'+
+      '<p style="color:var(--texto-secundario);margin-bottom:8px">'+esc(c.fecha||'')+'</p>'+
+      (c.resumen?'<p style="margin-bottom:12px">'+esc(c.resumen)+'</p>':'')+
+      (c.cuerpo?'<div style="margin:16px 0;white-space:pre-wrap">'+esc(c.cuerpo)+'</div>':'')+
+      (c.pdf_url?'<div class="cas-pdf-box"><div class="cas-pdf-name">'+esc(pdfName)+'</div><div class="cas-pdf-size">PDF</div><a class="cas-btn cas-btn-primary" style="width:100%;justify-content:center" href="'+esc(c.pdf_url)+'" target="_blank" rel="noopener">↓ Descargar</a></div>':'');
+    document.getElementById('cas-list-wrap').style.display='none';
+    document.getElementById('cas-detail').style.display='block';
+    var sec=document.getElementById('convocatorias');
+    if(sec) window.scrollTo({top:sec.offsetTop-90,behavior:'smooth'});
+  }
+
+  var backBtn=document.getElementById('cas-back');
+  if(backBtn){
+    backBtn.onclick=function(){
+      document.getElementById('cas-detail').style.display='none';
+      document.getElementById('cas-list-wrap').style.display='block';
+    };
+  }
+
+  sb.from('convocatorias_cas').select('*').eq('status','published').order('sort_order').order('created_at',{ascending:false})
+    .then(function(res){
+      if(res.error){
+        var box=document.getElementById('cas-list');
+        if(box) box.innerHTML='<div class="cas-empty">'+esc(res.error.message)+'</div>';
+        return;
+      }
+      cache=res.data||[];
+      renderList(cache);
+      var countEl=document.getElementById('cas-count');
+      if(countEl) countEl.textContent=cache.length+' publicadas';
+    });
+
+  // Si la página se abre directamente en #convocatorias, asegura el scroll una vez cargado el layout
+  if(window.location.hash==='#convocatorias'){
+    window.addEventListener('load',function(){
+      var sec=document.getElementById('convocatorias');
+      if(sec) setTimeout(function(){sec.scrollIntoView({behavior:'auto',block:'start'});},50);
+    });
+  }
+})();
+</script>
 </body>
 </html>
