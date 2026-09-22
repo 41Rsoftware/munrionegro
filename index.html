@@ -17,9 +17,11 @@ html, body {
 img, video, iframe, svg { max-width: 100%; }
 
 :root{
-  --verde-oscuro:#14311F;
-  --verde-medio:#2A6B47;
+  --verde-oscuro:#0F2A1B;
+  --verde-medio:#1F6B44;
   --verde-tenue:#EEF3EE;
+  --ocre:#B8863B;
+  --ocre-tenue:#FBF1E1;
   --rojo:#B23A2E;
   --rojo-tenue:#F8E9E7;
   --azul:#2B5C8A;
@@ -44,6 +46,15 @@ ul{list-style:none;}
 /* utility bar */
 .utilitybar{background:var(--verde-oscuro); color:#c7d7cc; font-size:12px;}
 .utilitybar .container{display:flex; justify-content:space-between; align-items:center; height:32px;}
+
+/* HOME ONLY: utility bar joins the floating transparent header stack */
+body.hero-page .utilitybar{position:absolute; top:0; left:0; width:100%; z-index:101; background:transparent; color:rgba(255,255,255,.85);}
+body.hero-page .utilitybar a:hover{color:#fff;}
+body.hero-page .masthead{top:32px;}
+body.hero-page .navbar{top:116px;}
+@media (max-width:980px){
+  body.hero-page .utilitybar .utility-left{display:none;}
+}
 .utility-left{display:flex; gap:20px;}
 .utility-left a:hover{color:#fff;}
 .utility-right{display:flex; gap:12px; align-items:center;}
@@ -53,20 +64,21 @@ ul{list-style:none;}
 .admin-dot:hover{background:rgba(255,255,255,.12); transform:rotate(20deg);}
 .admin-dot svg{width:12px; height:12px; stroke:#c7d7cc; fill:none; stroke-width:1.6;}
 
-/* header */
+/* header — solid by default (internal pages) */
 .masthead{border-bottom:1px solid var(--borde); background:#fff;}
 .masthead .container{display:flex; align-items:center; justify-content:space-between; height:84px; gap:24px;}
 .brand{display:flex; align-items:center; gap:12px;}
-.brand img{height:50px; width:auto;}
+.brand img{height:44px; width:auto;}
 .head-actions{display:flex; align-items:center; gap:10px;}
-.search-box{display:flex; align-items:center; border:1px solid var(--borde); border-radius:4px; overflow:hidden; height:38px;}
-.search-box input{border:none; outline:none; padding:0 12px; font-size:13px; width:170px; font-family:var(--font-body);}
+.search-box{display:flex; align-items:center; border:1px solid var(--borde); border-radius:4px; overflow:hidden; height:38px; background:transparent;}
+.search-box input{border:none; outline:none; background:transparent; padding:0 12px; font-size:13px; width:170px; font-family:var(--font-body); color:var(--texto);}
+.search-box input::placeholder{color:var(--texto-secundario);}
 .search-box button{background:var(--verde-oscuro); color:#fff; border:none; width:38px; height:38px; cursor:pointer;}
-.btn-header{background:var(--verde-oscuro); color:#fff; padding:0 18px; height:38px; display:flex; align-items:center; border-radius:4px; font-weight:600; font-size:13px;}
-.btn-header:hover{background:var(--verde-medio);}
+.btn-header{background:var(--verde-oscuro); border:1px solid var(--verde-oscuro); color:#fff; padding:0 18px; height:38px; display:flex; align-items:center; border-radius:4px; font-weight:600; font-size:13px;}
+.btn-header:hover{background:var(--verde-medio); border-color:var(--verde-medio);}
 
-/* nav */
-.navbar{background:var(--verde-medio); position:sticky; top:0; z-index:80; border-bottom:2px solid var(--verde-oscuro);}
+/* nav — solid by default (internal pages) */
+.navbar{background:var(--verde-medio); border-bottom:2px solid var(--verde-oscuro);}
 .nav-links{display:flex; justify-content:center;}
 .nav-links > li{position:relative;}
 .nav-links a.top-link{display:block; padding:13px 22px; font-size:13.5px; font-weight:600; color:#fff;}
@@ -79,6 +91,20 @@ ul{list-style:none;}
 .mm-col a:hover{color:var(--verde-medio);}
 .mm-col a:last-child{border-bottom:none;}
 
+/* HOME ONLY (body.hero-page): header + nav float, transparent,
+   white text — no background, no blur, just no fill. */
+body.hero-page .masthead{position:absolute; top:0; left:0; width:100%; z-index:100; background:transparent; border-bottom:none;}
+body.hero-page .masthead .brand img{filter:brightness(0) invert(1); opacity:.96;}
+body.hero-page .search-box{border-color:rgba(255,255,255,.55);}
+body.hero-page .search-box input{color:#fff;}
+body.hero-page .search-box input::placeholder{color:rgba(255,255,255,.7);}
+body.hero-page .search-box button{background:transparent; border-left:1px solid rgba(255,255,255,.55);}
+body.hero-page .btn-header{background:transparent; border-color:rgba(255,255,255,.7);}
+body.hero-page .btn-header:hover{background:rgba(255,255,255,.08); border-color:#fff;}
+body.hero-page .navbar{position:absolute; top:84px; left:0; width:100%; z-index:99; background:transparent; border-bottom:none;}
+body.hero-page .navbar .nav-links > li.active > a.top-link,
+body.hero-page .navbar .nav-links > li:hover > a.top-link{background:transparent; text-decoration:underline; text-underline-offset:5px;}
+
 /* breadcrumb + page header */
 .breadcrumb{background:var(--verde-tenue); border-bottom:1px solid var(--borde); font-size:12.5px; color:var(--texto-secundario);}
 .breadcrumb .container{height:38px; display:flex; align-items:center; gap:8px;}
@@ -88,29 +114,30 @@ ul{list-style:none;}
 .page-header h1{color:#fff; font-size:clamp(24px,3.4vw,34px); margin-top:6px;}
 .page-header p{color:#c7d7cc; font-size:14.5px; max-width:620px; margin-top:10px; font-family:var(--font-body); font-weight:400;}
 
-/* home hero — flat, restrained, with background photo */
-.hero{position:relative; color:#fff; border-bottom:4px solid var(--verde-medio); background:linear-gradient(100deg, rgba(10,26,17,.94) 0%, rgba(10,26,17,.82) 45%, rgba(10,26,17,.55) 100%), url('IMG/fondo.png') center 35%/cover no-repeat;}
-.hero .container{position:relative; display:grid; grid-template-columns:1.4fr .6fr; gap:36px; align-items:center; padding:52px 24px;}
-.hero .kicker{font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; color:#9fbcac; font-weight:600; margin-bottom:10px;}
-.hero h1{color:#fff; font-size:clamp(28px,3.6vw,42px); line-height:1.15;}
-.hero p.lead{color:#c7d7cc; font-size:15.5px; max-width:520px; margin-top:14px; font-weight:400;}
-.hero-actions{display:flex; gap:12px; margin-top:24px; flex-wrap:wrap;}
-.btn-primary{background:#fff; color:var(--verde-oscuro); padding:12px 22px; border-radius:4px; font-weight:700; font-size:13px; display:inline-block;}
+/* home hero — full-screen photo, text anchored low-left like a
+   destination hero; quick-access tiles overlap the bottom edge */
+.hero{position:relative; color:#fff; min-height:100svh; display:flex; flex-direction:column; justify-content:flex-end;
+  background:linear-gradient(180deg, rgba(10,26,17,.35) 0%, rgba(10,26,17,.15) 30%, rgba(10,26,17,.55) 78%, rgba(10,26,17,.88) 100%), url('IMG/fondo.png') center 40%/cover no-repeat;}
+.hero .container{position:relative; padding:52px 24px 128px;}
+.hero .kicker{font-size:12.5px; letter-spacing:.08em; text-transform:uppercase; color:#e7efe9; font-weight:600; margin-bottom:14px;}
+.hero h1{color:#fff; font-size:clamp(32px,5vw,56px); line-height:1.1; max-width:760px;}
+.hero p.lead{color:#e7efe9; font-size:16.5px; max-width:520px; margin-top:16px; font-weight:400;}
+.hero-actions{display:flex; gap:12px; margin-top:28px; flex-wrap:wrap;}
+.btn-primary{background:#fff; color:var(--verde-oscuro); padding:13px 24px; border-radius:4px; font-weight:700; font-size:13.5px; display:inline-block;}
 .btn-primary:hover{background:#e9efe9;}
-.btn-ghost{border:1px solid rgba(255,255,255,.4); color:#fff; padding:12px 22px; border-radius:4px; font-weight:600; font-size:13px; display:inline-block;}
-.btn-ghost:hover{background:rgba(255,255,255,.08);}
-.hero-badge{display:flex; justify-content:center;}
-.hero-badge img{width:130px; height:130px; object-fit:contain; opacity:.92;}
+.btn-ghost{border:1px solid rgba(255,255,255,.7); color:#fff; padding:13px 24px; border-radius:4px; font-weight:600; font-size:13.5px; display:inline-block; background:transparent;}
+.btn-ghost:hover{background:rgba(255,255,255,.1);}
 
-/* quick tiles — single accent, no rainbow */
-.tile-grid{display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid var(--borde); border-bottom:1px solid var(--borde);}
-.tile{background:#fff; padding:22px 14px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; border-right:1px solid var(--borde);}
+/* quick tiles — solid, semi-transparent, overlapping the hero's
+   lower edge. No blur/backdrop-filter: cheap to render on any phone. */
+.tile-grid{display:grid; grid-template-columns:repeat(7,1fr); position:relative; z-index:2; margin:-72px 24px 0; max-width:1132px; margin-left:auto; margin-right:auto; background:rgba(15,42,27,.62); border-radius:6px; overflow:hidden;}
+.tile{padding:20px 12px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:7px; border-right:1px solid rgba(255,255,255,.18);}
 .tile:last-child{border-right:none;}
-.tile:hover{background:var(--verde-tenue);}
-.tile-icon{width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:var(--verde-oscuro);}
-.tile-icon svg{width:30px; height:30px;}
-.tile-title{font-family:var(--font-body); font-weight:700; font-size:13px; color:var(--verde-oscuro);}
-.tile-desc{font-size:11px; color:var(--texto-secundario);}
+.tile:hover{background:rgba(15,42,27,.8);}
+.tile-icon{width:34px; height:34px; display:flex; align-items:center; justify-content:center; color:#fff;}
+.tile-icon svg{width:26px; height:26px;}
+.tile-title{font-family:var(--font-body); font-weight:700; font-size:13px; color:#fff;}
+.tile-desc{font-size:11px; color:#cfe0d5;}
 
 /* section shell */
 .section{padding:48px 0;}
@@ -200,10 +227,12 @@ footer ul a:hover{color:#fff;}
 .bottom-bar{display:flex; justify-content:space-between; padding-top:18px; font-size:11.5px; flex-wrap:wrap; gap:8px;}
 
 @media (max-width:980px){
-  .hero .container{grid-template-columns:1fr;}
-  .hero-badge{display:none;}
-  .tile-grid{grid-template-columns:repeat(3,1fr);}
-  .tile{border-bottom:1px solid var(--borde);}
+  .hero{min-height:88svh;}
+  body.hero-page .navbar{top:70px;}
+  .nav-links{flex-wrap:wrap;}
+  .nav-links a.top-link{padding:8px 12px; font-size:12.5px;}
+  .tile-grid{grid-template-columns:repeat(3,1fr); margin:-56px 14px 0;}
+  .tile{border-bottom:1px solid rgba(255,255,255,.18); padding:16px 8px;}
   .megamenu{min-width:260px; grid-template-columns:1fr;}
   .gallery-grid{grid-template-columns:repeat(2,1fr);}
   .two-col,.three-col,.linkcard-grid{grid-template-columns:1fr;}
@@ -953,7 +982,7 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 
 </style>
 </head>
-<body>
+<body class="hero-page">
 <div id="rnAnnBar"></div>
 <div class="utilitybar">
   <div class="container">
@@ -987,6 +1016,8 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
   </div>
 </header>
 
+
+
 <nav class="navbar">
   <div class="container">
     <ul class="nav-links">
@@ -1016,17 +1047,12 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 
 <section class="hero" id="inicio">
   <div class="container">
-    <div>
-      <div class="kicker">Trabajo y Transparencia</div>
-      <h1>Municipalidad Distrital de Río Negro</h1>
-      <p class="lead">Portal oficial del distrito intercultural de la Selva Central, provincia de Satipo, región Junín.</p>
-      <div class="hero-actions">
-        <a class="btn-primary" href="servicios.html">Hacer un trámite</a>
-        <a class="btn-ghost" href="municipalidad.html#transparencia">Portal de transparencia</a>
-      </div>
-    </div>
-    <div class="hero-badge">
-      <img src="IMG/logoMUNI.png" alt="Municipalidad Distrital de Río Negro">
+    <div class="kicker">Trabajo y Transparencia</div>
+    <h1>Municipalidad Distrital de Río Negro</h1>
+    <p class="lead">Portal oficial del distrito intercultural de la Selva Central, provincia de Satipo, región Junín.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="servicios.html">Hacer un trámite</a>
+      <a class="btn-ghost" href="municipalidad.html#transparencia">Portal de transparencia</a>
     </div>
   </div>
 </section>
@@ -1072,6 +1098,15 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 
 <!-- Aviso destacado: se gestionará desde el panel de administración -->
 
+<section class="section" style="padding-bottom:0;">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow" style="color:var(--ocre);">Explora Río Negro</div>
+      <h2>Lo más reciente de nuestro distrito</h2>
+      <p class="section-sub">Comunicados, avisos y novedades oficiales de la gestión municipal.</p>
+    </div>
+  </div>
+</section>
 <div class="container" id="rnDynamicFeatured"></div>
 <div class="container" id="rnDynamicPosts"></div>
 
