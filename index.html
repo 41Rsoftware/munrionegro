@@ -55,9 +55,12 @@ body.hero-page .navbar{top:116px;}
 @media (max-width:980px){
   body.hero-page .utilitybar .utility-left{display:none;}
 }
-.utility-left{display:flex; gap:20px;}
+.utility-left{display:flex; gap:18px; flex-wrap:nowrap;}
+.utility-left a{white-space:nowrap; font-size:12px;}
 .utility-left a:hover{color:#fff;}
-.utility-right{display:flex; gap:12px; align-items:center;}
+.utility-right{display:flex; gap:14px; align-items:center; flex-shrink:0;}
+.utility-right span{white-space:nowrap;}
+.utilitybar .container{gap:16px;}
 .social-dot{width:20px; height:20px; border-radius:3px; border:1px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:11px;}
 .social-dot:hover{background:rgba(255,255,255,.12);}
 .admin-dot{width:20px; height:20px; border-radius:3px; border:1px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; transition:background .15s, transform .15s;}
@@ -66,10 +69,10 @@ body.hero-page .navbar{top:116px;}
 
 /* header — solid by default (internal pages) */
 .masthead{border-bottom:1px solid var(--borde); background:#fff;}
-.masthead .container{display:flex; align-items:center; justify-content:space-between; height:84px; gap:24px;}
-.brand{display:flex; align-items:center; gap:12px;}
-.brand img{height:44px; width:auto;}
-.head-actions{display:flex; align-items:center; gap:10px;}
+.masthead .container{display:flex; align-items:center; justify-content:space-between; height:84px; gap:16px;}
+.brand{display:flex; align-items:center; gap:12px; flex-shrink:1; min-width:0;}
+.brand img{height:44px; width:auto; max-width:100%;}
+.head-actions{display:flex; align-items:center; gap:10px; flex-shrink:0;}
 .search-box{display:flex; align-items:center; border:1px solid var(--borde); border-radius:4px; overflow:hidden; height:38px; background:transparent;}
 .search-box input{border:none; outline:none; background:transparent; padding:0 12px; font-size:13px; width:170px; font-family:var(--font-body); color:var(--texto);}
 .search-box input::placeholder{color:var(--texto-secundario);}
@@ -92,8 +95,9 @@ body.hero-page .navbar{top:116px;}
 .mm-col a:last-child{border-bottom:none;}
 
 /* HOME ONLY (body.hero-page): header + nav float, transparent,
-   white text — no background, no blur, just no fill. */
-body.hero-page .masthead{position:absolute; top:0; left:0; width:100%; z-index:100; background:transparent; border-bottom:none;}
+   white text — no background, no blur, just no fill.
+   masthead goes BELOW utilitybar (32px), navbar below masthead. */
+body.hero-page .masthead{position:absolute; top:32px; left:0; width:100%; z-index:100; background:transparent; border-bottom:none;}
 body.hero-page .masthead .brand img{filter:brightness(0) invert(1); opacity:.96;}
 body.hero-page .search-box{border-color:rgba(255,255,255,.55);}
 body.hero-page .search-box input{color:#fff;}
@@ -101,7 +105,7 @@ body.hero-page .search-box input::placeholder{color:rgba(255,255,255,.7);}
 body.hero-page .search-box button{background:transparent; border-left:1px solid rgba(255,255,255,.55);}
 body.hero-page .btn-header{background:transparent; border-color:rgba(255,255,255,.7);}
 body.hero-page .btn-header:hover{background:rgba(255,255,255,.08); border-color:#fff;}
-body.hero-page .navbar{position:absolute; top:84px; left:0; width:100%; z-index:99; background:transparent; border-bottom:none;}
+body.hero-page .navbar{position:absolute; top:116px; left:0; width:100%; z-index:99; background:transparent; border-bottom:none;}
 body.hero-page .navbar .nav-links > li.active > a.top-link,
 body.hero-page .navbar .nav-links > li:hover > a.top-link{background:transparent; text-decoration:underline; text-underline-offset:5px;}
 
@@ -228,7 +232,7 @@ footer ul a:hover{color:#fff;}
 
 @media (max-width:980px){
   .hero{min-height:88svh;}
-  body.hero-page .navbar{top:70px;}
+  body.hero-page .navbar{top:100px;} /* utility 32 + masthead ~68 */
   .nav-links{flex-wrap:wrap;}
   .nav-links a.top-link{padding:8px 12px; font-size:12.5px;}
   .tile-grid{grid-template-columns:repeat(3,1fr); margin:-56px 14px 0;}
@@ -784,6 +788,41 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 /* Móvil compacto municipal */
 @media (max-width:700px){
 
+  /* Utility bar: keep Síguenos + icons on the right, no overlap */
+  .utilitybar .container {
+    height: 28px !important;
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+  .utility-left { gap: 10px !important; }
+  .utility-left a { font-size: 10px !important; }
+  .utility-right { gap: 8px !important; }
+  .utility-right span { font-size: 10px !important; }
+
+  /* Masthead: logo left, actions right — never overlap */
+  .masthead .container {
+    height: auto !important;
+    min-height: 48px !important;
+    padding: 6px 10px !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+  .masthead .brand { flex: 0 1 auto; min-width: 0; }
+  .masthead .brand img { height: 32px !important; max-height: 32px !important; width: auto !important; }
+  .masthead .head-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto;
+  }
+  .masthead .btn-header {
+    font-size: 11px !important;
+    padding: 0 10px !important;
+    height: 30px !important;
+    white-space: nowrap !important;
+  }
+
   .navbar, .navbar .container {
     max-width: 100% !important;
     overflow: hidden;
@@ -982,10 +1021,13 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
 
 /* ===== Home (hero-page) en móvil: todo más chico y compacto ===== */
 @media (max-width:640px){
-  body.hero-page .masthead .container{height:52px !important;}
+  body.hero-page .utilitybar .container{height:28px !important;}
+  body.hero-page .masthead{top:28px !important;}
+  body.hero-page .masthead .container{height:48px !important; padding:0 12px !important; gap:8px !important;}
   body.hero-page .brand img{height:28px !important;}
-  body.hero-page .navbar{top:84px !important;}
-  body.hero-page .btn-header{padding:0 11px !important; height:30px !important; font-size:11px !important;}
+  body.hero-page .navbar{top:76px !important;}
+  body.hero-page .btn-header{padding:0 11px !important; height:30px !important; font-size:11px !important; flex-shrink:0 !important;}
+  body.hero-page .head-actions{gap:6px !important; flex-shrink:0 !important;}
 
   body.hero-page .hero{min-height:66svh !important;}
   body.hero-page .hero .container{padding:14px 14px 84px !important;}
