@@ -980,6 +980,34 @@ button.admin-dot svg{width:13px; height:13px; stroke:#c7d7cc; fill:none; stroke-
   }
 }
 
+/* ===== Home (hero-page) en móvil: todo más chico y compacto ===== */
+@media (max-width:640px){
+  body.hero-page .masthead .container{height:52px !important;}
+  body.hero-page .brand img{height:28px !important;}
+  body.hero-page .navbar{top:84px !important;}
+  body.hero-page .btn-header{padding:0 11px !important; height:30px !important; font-size:11px !important;}
+
+  body.hero-page .hero{min-height:66svh !important;}
+  body.hero-page .hero .container{padding:14px 14px 84px !important;}
+  body.hero-page .hero .kicker{font-size:9.5px !important; margin-bottom:6px !important;}
+  body.hero-page .hero h1{font-size:clamp(20px,6.6vw,28px) !important; line-height:1.15 !important;}
+  body.hero-page .hero p.lead{font-size:12px !important; margin-top:6px !important;}
+  body.hero-page .hero-actions{gap:8px !important; margin-top:14px !important;}
+  body.hero-page .hero-actions a{padding:8px 14px !important; font-size:11.5px !important; flex:0 1 auto !important;}
+
+  /* accesos rápidos: 3 columnas, chips chicos, sin descripción para que quepan */
+  body.hero-page .tile-grid{grid-template-columns:repeat(3,1fr) !important; margin:-58px 10px 0 !important; border-radius:8px !important; max-width:none !important;}
+  body.hero-page .tile{padding:9px 3px !important; gap:3px !important;}
+  body.hero-page .tile-icon{width:20px !important; height:20px !important;}
+  body.hero-page .tile-icon svg{width:16px !important; height:16px !important;}
+  body.hero-page .tile-title{font-size:9.5px !important; line-height:1.15 !important;}
+  body.hero-page .tile-desc{display:none !important;}
+}
+@media (max-width:380px){
+  body.hero-page .hero-actions{flex-direction:column !important;}
+  body.hero-page .hero-actions a{width:100% !important; text-align:center !important;}
+}
+
 </style>
 </head>
 <body class="hero-page">
